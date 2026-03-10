@@ -26,34 +26,45 @@ const MIME = {
 const server = http.createServer((req, res) => {
   // --- API Proxy: /api/* → https://apis.intangles.com/* ---
   if (req.url.startsWith('/api/')) {
-    const targetPath = req.url.slice(4); // strip "/api"
-    const headers = { ...req.headers, host: API_HOST };
-    delete headers['origin'];
-    delete headers['referer'];
-    delete headers['connection'];
-    delete headers['accept-encoding'];
-    if (req.method === 'GET') {
-      delete headers['content-type'];
-      delete headers['content-length'];
-      delete headers['transfer-encoding'];
-    }
+    // Buffer the full request body first, then forward
+    const chunks = [];
+    req.on('data', (chunk) => chunks.push(chunk));
+    req.on('end', () => {
+      const body = Buffer.concat(chunks);
+      const targetPath = req.url.slice(4); // strip "/api"
 
-    const proxyReq = https.request(
-      { hostname: API_HOST, path: targetPath, method: req.method, headers },
-      (proxyRes) => {
-        res.writeHead(proxyRes.statusCode, {
-          ...proxyRes.headers,
-          'access-control-allow-origin': '*',
-          'access-control-allow-headers': '*',
-        });
-        proxyRes.pipe(res);
+      // Build clean headers for upstream
+      const fwdHeaders = {
+        host: API_HOST,
+        accept: req.headers['accept'] || 'application/json',
+      };
+      // Forward intangles auth headers
+      for (const [k, v] of Object.entries(req.headers)) {
+        if (k.startsWith('intangles-')) fwdHeaders[k] = v;
       }
-    );
-    proxyReq.on('error', (err) => {
-      res.writeHead(502, { 'content-type': 'application/json' });
-      res.end(JSON.stringify({ error: 'Proxy error', message: err.message }));
+      // For POST/PUT, include body-related headers
+      if (body.length > 0) {
+        fwdHeaders['content-type'] = req.headers['content-type'] || 'application/json';
+        fwdHeaders['content-length'] = body.length;
+      }
+
+      const proxyReq = https.request(
+        { hostname: API_HOST, path: targetPath, method: req.method, headers: fwdHeaders },
+        (proxyRes) => {
+          res.writeHead(proxyRes.statusCode, {
+            ...proxyRes.headers,
+            'access-control-allow-origin': '*',
+            'access-control-allow-headers': '*',
+          });
+          proxyRes.pipe(res);
+        }
+      );
+      proxyReq.on('error', (err) => {
+        res.writeHead(502, { 'content-type': 'application/json' });
+        res.end(JSON.stringify({ error: 'Proxy error', message: err.message }));
+      });
+      proxyReq.end(body);
     });
-    req.pipe(proxyReq);
     return;
   }
 
