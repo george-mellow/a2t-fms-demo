@@ -1345,7 +1345,7 @@ async function doLogin() {
     const data = await fetch(INTANGLES.API_BASE + '/v2/user/login', {
       method: 'POST',
       headers: { ...INTANGLES.HEADERS_STATIC, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, password })
+      body: JSON.stringify({ username: email, email, password })
     }).then(r => r.json());
     if (data.status && (data.status.code === 12000 || data.status.code === '500')) {
       document.getElementById('authMsg').innerHTML = '<div class="i-error-msg">Login failed: ' + (data.status.msg || data.status.ex || 'Unknown error') + '</div>';
