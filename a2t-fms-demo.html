@@ -1,0 +1,1842 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>A2T Fleet Management System - Live Demo</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* ===== RESET & BASE ===== */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; background: #f0f2f5; color: #1a1a2e; overflow-x: hidden; }
+:root {
+  --primary: #1a1a2e;
+  --primary-light: #16213e;
+  --accent: #0f3460;
+  --blue: #4361ee;
+  --green: #06d6a0;
+  --amber: #ffd166;
+  --red: #ef476f;
+  --orange: #f77f00;
+  --gray-50: #f8f9fa;
+  --gray-100: #f0f2f5;
+  --gray-200: #e2e8f0;
+  --gray-300: #cbd5e1;
+  --gray-400: #94a3b8;
+  --gray-500: #64748b;
+  --gray-600: #475569;
+  --gray-700: #334155;
+  --gray-800: #1e293b;
+  --shadow: 0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.06);
+  --shadow-md: 0 4px 6px rgba(0,0,0,0.07), 0 2px 4px rgba(0,0,0,0.06);
+  --shadow-lg: 0 10px 15px rgba(0,0,0,0.1), 0 4px 6px rgba(0,0,0,0.05);
+  --radius: 12px;
+  --radius-sm: 8px;
+}
+
+/* ===== LAYOUT ===== */
+.app { display: flex; height: 100vh; }
+
+/* Sidebar */
+.sidebar {
+  width: 260px; background: var(--primary); color: #fff;
+  display: flex; flex-direction: column; flex-shrink: 0;
+  box-shadow: 2px 0 10px rgba(0,0,0,0.15); z-index: 10;
+}
+.sidebar-brand {
+  padding: 24px 20px; border-bottom: 1px solid rgba(255,255,255,0.08);
+  display: flex; align-items: center; gap: 12px;
+}
+.sidebar-brand .logo {
+  width: 40px; height: 40px; background: var(--blue);
+  border-radius: 10px; display: flex; align-items: center; justify-content: center;
+  font-weight: 700; font-size: 16px;
+}
+.sidebar-brand h1 { font-size: 16px; font-weight: 600; }
+.sidebar-brand p { font-size: 11px; color: var(--gray-400); margin-top: 2px; }
+.sidebar-nav { flex: 1; padding: 16px 12px; overflow-y: auto; }
+.sidebar-section { margin-bottom: 24px; }
+.sidebar-section-title {
+  font-size: 10px; text-transform: uppercase; letter-spacing: 1.2px;
+  color: var(--gray-500); padding: 0 8px; margin-bottom: 8px; font-weight: 600;
+}
+.nav-item {
+  display: flex; align-items: center; gap: 12px;
+  padding: 10px 12px; border-radius: var(--radius-sm);
+  cursor: pointer; transition: all 0.2s; font-size: 13px;
+  color: var(--gray-400); font-weight: 500; margin-bottom: 2px;
+}
+.nav-item:hover { background: rgba(255,255,255,0.06); color: #fff; }
+.nav-item.active { background: var(--blue); color: #fff; }
+.nav-item svg { width: 18px; height: 18px; flex-shrink: 0; }
+.nav-badge {
+  margin-left: auto; background: var(--red); color: #fff;
+  font-size: 10px; font-weight: 700; padding: 2px 7px;
+  border-radius: 10px; min-width: 20px; text-align: center;
+}
+.sidebar-user {
+  padding: 16px 20px; border-top: 1px solid rgba(255,255,255,0.08);
+  display: flex; align-items: center; gap: 12px;
+}
+.sidebar-user .avatar {
+  width: 36px; height: 36px; border-radius: 50%;
+  background: var(--accent); display: flex; align-items: center;
+  justify-content: center; font-weight: 600; font-size: 14px;
+}
+.sidebar-user .info { font-size: 13px; font-weight: 500; }
+.sidebar-user .role { font-size: 11px; color: var(--gray-500); }
+
+/* Main content */
+.main { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+
+/* Top bar */
+.topbar {
+  height: 60px; background: #fff; border-bottom: 1px solid var(--gray-200);
+  display: flex; align-items: center; padding: 0 24px; gap: 16px; flex-shrink: 0;
+}
+.topbar-title { font-size: 18px; font-weight: 700; }
+.topbar-subtitle { font-size: 13px; color: var(--gray-500); margin-left: 8px; }
+.topbar-actions { margin-left: auto; display: flex; align-items: center; gap: 12px; }
+.topbar-btn {
+  padding: 8px 16px; border-radius: var(--radius-sm); border: none;
+  font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.2s; font-family: inherit;
+}
+.topbar-btn-primary { background: var(--blue); color: #fff; }
+.topbar-btn-primary:hover { background: #3451de; }
+.topbar-btn-outline { background: #fff; border: 1px solid var(--gray-300); color: var(--gray-700); }
+.topbar-btn-outline:hover { border-color: var(--blue); color: var(--blue); }
+.topbar-search {
+  padding: 8px 14px; border-radius: var(--radius-sm); border: 1px solid var(--gray-200);
+  font-size: 13px; width: 240px; font-family: inherit; outline: none; background: var(--gray-50);
+}
+.topbar-search:focus { border-color: var(--blue); background: #fff; }
+.notification-bell {
+  position: relative; cursor: pointer; padding: 8px; border-radius: 50%;
+  background: var(--gray-50); border: 1px solid var(--gray-200);
+}
+.notification-bell svg { width: 18px; height: 18px; color: var(--gray-600); }
+.notification-bell .dot {
+  position: absolute; top: 6px; right: 6px; width: 8px; height: 8px;
+  background: var(--red); border-radius: 50%; border: 2px solid #fff;
+}
+
+/* Content area */
+.content { flex: 1; overflow-y: auto; padding: 24px; }
+.view { display: none; }
+.view.active { display: block; }
+
+/* ===== CARDS ===== */
+.card {
+  background: #fff; border-radius: var(--radius); box-shadow: var(--shadow);
+  border: 1px solid var(--gray-200);
+}
+.card-header {
+  padding: 16px 20px; border-bottom: 1px solid var(--gray-100);
+  display: flex; align-items: center; justify-content: space-between;
+}
+.card-header h3 { font-size: 14px; font-weight: 600; }
+.card-body { padding: 20px; }
+
+/* Stats cards grid */
+.stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 24px; }
+.stat-card {
+  background: #fff; border-radius: var(--radius); padding: 20px;
+  box-shadow: var(--shadow); border: 1px solid var(--gray-200); transition: all 0.2s;
+}
+.stat-card:hover { box-shadow: var(--shadow-md); transform: translateY(-2px); }
+.stat-card .stat-icon {
+  width: 44px; height: 44px; border-radius: 10px;
+  display: flex; align-items: center; justify-content: center; margin-bottom: 14px;
+}
+.stat-card .stat-icon svg { width: 22px; height: 22px; }
+.stat-card .stat-value { font-size: 28px; font-weight: 700; line-height: 1; }
+.stat-card .stat-label { font-size: 12px; color: var(--gray-500); margin-top: 6px; font-weight: 500; }
+.stat-card .stat-change { font-size: 11px; font-weight: 600; margin-top: 8px; display: flex; align-items: center; gap: 4px; }
+.stat-change.up { color: var(--green); }
+.stat-change.down { color: var(--red); }
+
+/* ===== OPERATIONS DASHBOARD ===== */
+.ops-layout { display: grid; grid-template-columns: 1fr 380px; gap: 24px; }
+.ops-map-area { display: flex; flex-direction: column; gap: 24px; }
+
+/* Map */
+.map-container {
+  background: #e8eff5; border-radius: var(--radius); height: 440px;
+  overflow: hidden; position: relative; border: 1px solid var(--gray-200);
+}
+.map-placeholder {
+  width: 100%; height: 100%; position: relative;
+  background: linear-gradient(135deg, #dde5ed 25%, transparent 25%), linear-gradient(225deg, #dde5ed 25%, transparent 25%),
+    linear-gradient(315deg, #dde5ed 25%, transparent 25%), linear-gradient(45deg, #dde5ed 25%, transparent 25%);
+  background-size: 40px 40px;
+  background-position: 0 0, 0 20px, 20px -20px, 20px 0;
+  background-color: #e8eff5;
+}
+.map-overlay {
+  position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+  background: linear-gradient(180deg, rgba(30,64,120,0.03) 0%, rgba(30,64,120,0.08) 100%);
+}
+.map-road { position: absolute; background: rgba(255,255,255,0.7); }
+.map-road-h { height: 3px; width: 100%; }
+.map-road-v { width: 3px; height: 100%; }
+.map-location {
+  position: absolute; background: rgba(255,255,255,0.95); padding: 4px 10px;
+  border-radius: 6px; font-size: 10px; font-weight: 600; color: var(--gray-700);
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1); white-space: nowrap; border: 1px solid var(--gray-200);
+}
+.map-location::before {
+  content: ''; position: absolute; bottom: -4px; left: 50%; transform: translateX(-50%);
+  width: 8px; height: 8px; background: inherit; border-radius: 1px;
+  transform: translateX(-50%) rotate(45deg); border-right: 1px solid var(--gray-200);
+  border-bottom: 1px solid var(--gray-200);
+}
+.vehicle-marker { position: absolute; cursor: pointer; transition: transform 0.3s; }
+.vehicle-marker:hover { transform: scale(1.2); z-index: 5; }
+.vehicle-dot {
+  width: 32px; height: 32px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  color: #fff; font-size: 11px; font-weight: 700;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.2); position: relative;
+}
+.vehicle-dot.moving { background: var(--green); }
+.vehicle-dot.idle { background: var(--amber); }
+.vehicle-dot.alert { background: var(--red); }
+.vehicle-dot .pulse {
+  position: absolute; width: 100%; height: 100%; border-radius: 50%;
+  animation: pulse 2s infinite;
+}
+.vehicle-dot.moving .pulse { background: var(--green); }
+.vehicle-dot.idle .pulse { background: var(--amber); }
+.vehicle-dot.alert .pulse { background: var(--red); }
+@keyframes pulse {
+  0% { transform: scale(1); opacity: 0.4; }
+  100% { transform: scale(2.2); opacity: 0; }
+}
+.vehicle-label {
+  position: absolute; top: -24px; left: 50%; transform: translateX(-50%);
+  background: var(--gray-800); color: #fff; padding: 2px 8px;
+  border-radius: 4px; font-size: 9px; font-weight: 600; white-space: nowrap;
+}
+.map-legend {
+  position: absolute; bottom: 12px; left: 12px; background: rgba(255,255,255,0.95);
+  padding: 10px 14px; border-radius: var(--radius-sm); font-size: 11px;
+  display: flex; gap: 16px; box-shadow: var(--shadow);
+}
+.legend-item { display: flex; align-items: center; gap: 6px; }
+.legend-dot { width: 10px; height: 10px; border-radius: 50%; }
+
+/* Trip feed */
+.trip-feed { display: flex; flex-direction: column; gap: 12px; }
+.trip-card {
+  background: #fff; border-radius: var(--radius); padding: 16px;
+  border: 1px solid var(--gray-200); box-shadow: var(--shadow);
+  cursor: pointer; transition: all 0.2s;
+}
+.trip-card:hover { box-shadow: var(--shadow-md); border-color: var(--blue); }
+.trip-card-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+.trip-card-vehicle { font-size: 14px; font-weight: 700; }
+.trip-card-badge {
+  padding: 3px 10px; border-radius: 20px; font-size: 10px;
+  font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;
+}
+.badge-active { background: #dcfce7; color: #15803d; }
+.badge-waiting { background: #fef3c7; color: #92400e; }
+.badge-completed { background: #e0e7ff; color: #3730a3; }
+.badge-alert { background: #fce4ec; color: #c62828; }
+.trip-card-route { font-size: 12px; color: var(--gray-600); margin-bottom: 8px; display: flex; align-items: center; gap: 6px; }
+.trip-card-route .arrow { color: var(--blue); font-weight: 700; }
+.trip-card-driver { font-size: 11px; color: var(--gray-500); display: flex; align-items: center; gap: 6px; }
+.trip-card-time { font-size: 11px; color: var(--gray-400); margin-top: 8px; }
+
+/* Trip timeline */
+.trip-timeline { margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--gray-100); }
+.timeline-step { display: flex; align-items: flex-start; gap: 10px; padding: 4px 0; font-size: 11px; }
+.timeline-dot-container { display: flex; flex-direction: column; align-items: center; }
+.timeline-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; margin-top: 2px; }
+.timeline-dot.done { background: var(--green); }
+.timeline-dot.current { background: var(--blue); box-shadow: 0 0 0 3px rgba(67,97,238,0.3); }
+.timeline-dot.pending { background: var(--gray-300); }
+.timeline-line { width: 2px; height: 16px; background: var(--gray-200); }
+.timeline-line.done { background: var(--green); }
+.timeline-text { color: var(--gray-600); }
+.timeline-text strong { color: var(--gray-800); }
+.timeline-time { color: var(--gray-400); margin-left: auto; white-space: nowrap; }
+
+/* Alerts panel */
+.alerts-panel { display: flex; flex-direction: column; gap: 8px; }
+.alert-item {
+  display: flex; align-items: flex-start; gap: 10px; padding: 10px 14px;
+  border-radius: var(--radius-sm); font-size: 12px; border: 1px solid; transition: all 0.2s;
+}
+.alert-item:hover { transform: translateX(4px); }
+.alert-critical { background: #fff5f5; border-color: #fecaca; }
+.alert-warning { background: #fffbeb; border-color: #fde68a; }
+.alert-info { background: #eff6ff; border-color: #bfdbfe; }
+.alert-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; margin-top: 4px; }
+.alert-critical .alert-dot { background: var(--red); }
+.alert-warning .alert-dot { background: var(--amber); }
+.alert-info .alert-dot { background: var(--blue); }
+.alert-text { flex: 1; }
+.alert-time { font-size: 10px; color: var(--gray-400); margin-top: 2px; }
+
+/* ===== MOBILE APP MOCKUPS ===== */
+.mobile-view { display: flex; gap: 40px; justify-content: center; align-items: flex-start; flex-wrap: wrap; padding: 20px 0; }
+.phone-frame {
+  width: 320px; height: 640px; background: var(--gray-800);
+  border-radius: 36px; padding: 12px; box-shadow: var(--shadow-lg), 0 0 0 2px var(--gray-700); position: relative;
+}
+.phone-screen {
+  width: 100%; height: 100%; background: #fff; border-radius: 26px;
+  overflow: hidden; display: flex; flex-direction: column;
+}
+.phone-status-bar {
+  height: 44px; background: var(--blue); display: flex;
+  align-items: center; justify-content: space-between;
+  padding: 0 20px; color: #fff; font-size: 11px; font-weight: 600; flex-shrink: 0;
+}
+.phone-header { background: var(--blue); color: #fff; padding: 0 16px 16px; flex-shrink: 0; }
+.phone-header h2 { font-size: 20px; font-weight: 700; }
+.phone-header p { font-size: 12px; opacity: 0.8; margin-top: 2px; }
+.phone-body { flex: 1; overflow-y: auto; background: var(--gray-50); }
+.phone-nav {
+  height: 56px; background: #fff; border-top: 1px solid var(--gray-200);
+  display: flex; align-items: center; justify-content: space-around; flex-shrink: 0;
+}
+.phone-nav-item {
+  display: flex; flex-direction: column; align-items: center; gap: 2px;
+  font-size: 9px; color: var(--gray-400); cursor: pointer; padding: 4px 12px;
+}
+.phone-nav-item.active { color: var(--blue); }
+.phone-nav-item svg { width: 20px; height: 20px; }
+.phone-label { font-size: 14px; font-weight: 600; color: var(--gray-800); padding: 16px 16px 8px; }
+
+/* Mobile trip cards */
+.m-trip-card {
+  background: #fff; margin: 0 12px 10px; border-radius: 12px;
+  padding: 14px; box-shadow: var(--shadow); border: 1px solid var(--gray-100);
+}
+.m-trip-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+.m-trip-vehicle { font-size: 14px; font-weight: 700; }
+.m-trip-type { font-size: 10px; font-weight: 600; padding: 2px 8px; border-radius: 10px; }
+.m-trip-route { font-size: 12px; color: var(--gray-600); margin-bottom: 6px; }
+.m-trip-time { font-size: 10px; color: var(--gray-400); }
+.m-trip-btn {
+  width: 100%; padding: 10px; border-radius: 8px; border: none;
+  font-size: 13px; font-weight: 600; cursor: pointer; margin-top: 10px; font-family: inherit;
+}
+.m-trip-btn-primary { background: var(--blue); color: #fff; }
+.m-trip-btn-success { background: var(--green); color: #fff; }
+.m-trip-btn-outline { background: #fff; color: var(--blue); border: 1.5px solid var(--blue); }
+
+/* Mobile status steps */
+.m-status-step {
+  display: flex; align-items: center; gap: 10px; padding: 8px 16px;
+  background: #fff; margin: 0 12px 1px; font-size: 12px;
+}
+.m-status-step:first-child { border-radius: 10px 10px 0 0; }
+.m-status-step:last-child { border-radius: 0 0 10px 10px; margin-bottom: 12px; }
+.m-status-icon {
+  width: 28px; height: 28px; border-radius: 50%; display: flex;
+  align-items: center; justify-content: center; font-size: 12px; flex-shrink: 0;
+}
+.m-status-icon.done { background: #dcfce7; color: #15803d; }
+.m-status-icon.active { background: #dbeafe; color: var(--blue); }
+.m-status-icon.pending { background: var(--gray-100); color: var(--gray-400); }
+.m-status-text { flex: 1; }
+.m-status-text.done { color: var(--gray-500); }
+.m-status-text.active { color: var(--blue); font-weight: 600; }
+.m-status-text.pending { color: var(--gray-400); }
+.m-status-time { font-size: 10px; color: var(--gray-400); }
+
+/* Geofence prompt */
+.geofence-prompt {
+  margin: 0 12px 12px; background: linear-gradient(135deg, var(--blue), #6366f1);
+  border-radius: 12px; padding: 16px; color: #fff;
+}
+.geofence-prompt h4 { font-size: 13px; font-weight: 600; margin-bottom: 4px; }
+.geofence-prompt p { font-size: 11px; opacity: 0.85; margin-bottom: 12px; }
+.geofence-btns { display: flex; gap: 8px; }
+.geofence-btns button {
+  flex: 1; padding: 8px; border-radius: 8px; border: none;
+  font-size: 13px; font-weight: 700; cursor: pointer; font-family: inherit;
+}
+.geofence-yes { background: var(--green); color: #fff; }
+.geofence-no { background: rgba(255,255,255,0.2); color: #fff; }
+
+/* Inspection checklist */
+.m-checklist { margin: 0 12px 10px; background: #fff; border-radius: 12px; overflow: hidden; }
+.m-check-item {
+  display: flex; align-items: center; gap: 10px; padding: 12px 14px;
+  border-bottom: 1px solid var(--gray-100); font-size: 12px;
+}
+.m-check-item:last-child { border-bottom: none; }
+.m-checkbox {
+  width: 22px; height: 22px; border-radius: 6px; border: 2px solid var(--gray-300);
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0; cursor: pointer; transition: all 0.2s;
+}
+.m-checkbox.checked { background: var(--green); border-color: var(--green); color: #fff; }
+.m-check-label { flex: 1; }
+.m-check-status { font-size: 10px; font-weight: 600; padding: 2px 8px; border-radius: 8px; }
+.check-pass { background: #dcfce7; color: #15803d; }
+.check-fail { background: #fce4ec; color: #c62828; }
+
+/* ===== BUSINESS OWNER DASHBOARD ===== */
+.kpi-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 24px; }
+.kpi-card {
+  background: #fff; border-radius: var(--radius); padding: 24px;
+  box-shadow: var(--shadow); border: 1px solid var(--gray-200); transition: all 0.2s;
+}
+.kpi-card:hover { box-shadow: var(--shadow-md); }
+.kpi-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 16px; }
+.kpi-title { font-size: 12px; color: var(--gray-500); font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
+.kpi-trend { font-size: 11px; font-weight: 700; display: flex; align-items: center; gap: 3px; }
+.kpi-trend.up { color: var(--green); }
+.kpi-trend.down { color: var(--red); }
+.kpi-value { font-size: 36px; font-weight: 700; line-height: 1; margin-bottom: 4px; }
+.kpi-target { font-size: 11px; color: var(--gray-400); }
+.kpi-bar { height: 6px; background: var(--gray-100); border-radius: 3px; margin-top: 12px; overflow: hidden; }
+.kpi-bar-fill { height: 100%; border-radius: 3px; transition: width 1s ease; }
+
+/* Charts */
+.chart-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 24px; margin-bottom: 24px; }
+.chart-container { background: #fff; border-radius: var(--radius); padding: 20px; box-shadow: var(--shadow); border: 1px solid var(--gray-200); }
+.chart-title { font-size: 14px; font-weight: 600; margin-bottom: 20px; }
+
+/* Bar chart */
+.bar-chart { display: flex; align-items: flex-end; gap: 12px; height: 180px; padding-top: 10px; }
+.bar-group { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 6px; }
+.bar { width: 100%; border-radius: 4px 4px 0 0; transition: height 1s ease; position: relative; min-height: 4px; }
+.bar:hover { opacity: 0.8; }
+.bar-label { font-size: 10px; color: var(--gray-500); }
+.bar-value { font-size: 10px; font-weight: 600; color: var(--gray-700); }
+
+/* Donut chart */
+.donut-chart { width: 160px; height: 160px; border-radius: 50%; margin: 0 auto; position: relative; }
+.donut-center {
+  position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+  width: 90px; height: 90px; background: #fff; border-radius: 50%;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+}
+.donut-center .big { font-size: 24px; font-weight: 700; }
+.donut-center .small { font-size: 10px; color: var(--gray-500); }
+.donut-legend { display: flex; flex-direction: column; gap: 8px; margin-top: 20px; }
+.donut-legend-item { display: flex; align-items: center; gap: 8px; font-size: 12px; }
+.donut-legend-dot { width: 10px; height: 10px; border-radius: 3px; flex-shrink: 0; }
+
+/* Compliance table */
+.compliance-table { width: 100%; border-collapse: collapse; }
+.compliance-table th {
+  text-align: left; font-size: 11px; font-weight: 600; color: var(--gray-500);
+  text-transform: uppercase; letter-spacing: 0.5px; padding: 10px 12px;
+  border-bottom: 2px solid var(--gray-200);
+}
+.compliance-table td { padding: 12px; font-size: 13px; border-bottom: 1px solid var(--gray-100); }
+.compliance-table tr:hover { background: var(--gray-50); }
+.status-pill {
+  display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 10px; font-weight: 700;
+}
+.status-valid { background: #dcfce7; color: #15803d; }
+.status-expiring { background: #fef3c7; color: #92400e; }
+.status-expired { background: #fce4ec; color: #c62828; }
+
+/* ===== MECHANIC APP STYLES ===== */
+.service-card {
+  background: #fff; margin: 0 12px 10px; border-radius: 12px;
+  padding: 14px; border-left: 4px solid; box-shadow: var(--shadow);
+}
+.service-card.urgent { border-left-color: var(--red); }
+.service-card.scheduled { border-left-color: var(--blue); }
+.service-card.preventive { border-left-color: var(--green); }
+.service-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+.service-vehicle { font-size: 14px; font-weight: 700; }
+.service-priority { font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 8px; }
+.priority-urgent { background: #fce4ec; color: #c62828; }
+.priority-scheduled { background: #dbeafe; color: #1e40af; }
+.priority-preventive { background: #dcfce7; color: #15803d; }
+.service-desc { font-size: 12px; color: var(--gray-600); margin-bottom: 6px; }
+.service-meta { font-size: 10px; color: var(--gray-400); display: flex; gap: 12px; }
+.parts-log { margin: 0 12px 10px; }
+.parts-log h4 { font-size: 12px; font-weight: 600; margin-bottom: 8px; padding: 0 4px; }
+.part-item {
+  background: #fff; padding: 10px 14px; border-radius: 8px; margin-bottom: 4px;
+  display: flex; justify-content: space-between; align-items: center; font-size: 12px;
+}
+.part-name { font-weight: 500; }
+.part-qty { color: var(--gray-500); font-size: 11px; }
+
+/* Screen labels */
+.screen-label { text-align: center; margin-top: 16px; font-size: 14px; font-weight: 600; color: var(--gray-700); }
+.screen-sublabel { text-align: center; font-size: 11px; color: var(--gray-400); margin-top: 4px; }
+.view-intro { text-align: center; padding: 20px 0 10px; }
+.view-intro h2 { font-size: 22px; font-weight: 700; margin-bottom: 4px; }
+.view-intro p { font-size: 13px; color: var(--gray-500); }
+
+/* ===== FLEET MANAGEMENT STYLES ===== */
+.maint-timeline { display: grid; grid-template-columns: 120px repeat(14, 1fr); gap: 0; font-size: 11px; border: 1px solid var(--gray-200); border-radius: var(--radius); overflow: hidden; background: #fff; }
+.maint-timeline-header { padding: 8px 4px; text-align: center; font-weight: 600; color: var(--gray-500); font-size: 10px; background: var(--gray-50); border-bottom: 2px solid var(--gray-200); border-right: 1px solid var(--gray-100); }
+.maint-timeline-header:last-child { border-right: none; }
+.maint-timeline-vehicle { padding: 10px 12px; font-weight: 600; font-size: 12px; display: flex; align-items: center; background: #fff; border-bottom: 1px solid var(--gray-100); border-right: 1px solid var(--gray-200); }
+.maint-timeline-cell { padding: 6px 2px; text-align: center; min-height: 40px; border-bottom: 1px solid var(--gray-100); border-right: 1px solid var(--gray-50); display: flex; align-items: center; justify-content: center; }
+.maint-bar { height: 24px; border-radius: 4px; font-size: 9px; font-weight: 600; display: flex; align-items: center; justify-content: center; color: #fff; width: 90%; }
+.maint-bar.preventive { background: var(--green); }
+.maint-bar.scheduled { background: var(--blue); }
+.maint-bar.urgent { background: var(--red); }
+.status-active { background: #dcfce7; color: #15803d; }
+.status-idle { background: #fef3c7; color: #92400e; }
+.status-maintenance { background: #fce4ec; color: #c62828; }
+.status-parked { background: #e2e8f0; color: #475569; }
+
+/* ===== DOCUMENTS STYLES ===== */
+.doc-action-btn { padding: 4px 12px; border-radius: 6px; border: none; font-size: 11px; font-weight: 600; cursor: pointer; font-family: inherit; transition: all 0.2s; }
+.doc-approve { background: #dcfce7; color: #15803d; }
+.doc-approve:hover { background: #bbf7d0; }
+.doc-reject { background: #fce4ec; color: #c62828; }
+.doc-reject:hover { background: #fecdd3; }
+.doc-category-tag { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 10px; font-weight: 600; }
+.tag-trip { background: #dbeafe; color: #1e40af; }
+.tag-vehicle { background: #dcfce7; color: #15803d; }
+.tag-driver { background: #fef3c7; color: #92400e; }
+.status-complete { background: #dcfce7; color: #15803d; }
+.status-missing { background: #fce4ec; color: #c62828; }
+.status-pending { background: #fef3c7; color: #92400e; }
+
+/* ===== COMPLIANCE STYLES ===== */
+.compliance-calendar { display: flex; flex-direction: column; gap: 0; padding: 0; }
+.calendar-month-label { font-size: 12px; font-weight: 700; color: var(--gray-700); padding: 12px 0 8px; border-bottom: 1px solid var(--gray-200); }
+.calendar-row { display: flex; align-items: center; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--gray-100); font-size: 12px; }
+.calendar-date { width: 80px; font-weight: 700; color: var(--gray-600); flex-shrink: 0; }
+.calendar-events { display: flex; flex-wrap: wrap; gap: 6px; flex: 1; }
+.calendar-event { padding: 4px 10px; border-radius: 6px; font-size: 10px; font-weight: 600; display: flex; align-items: center; gap: 4px; }
+.event-critical { background: #fce4ec; color: #c62828; border: 1px solid #fecaca; }
+.event-warning { background: #fef3c7; color: #92400e; border: 1px solid #fde68a; }
+.event-info { background: #dbeafe; color: #1e40af; border: 1px solid #bfdbfe; }
+.event-normal { background: var(--gray-100); color: var(--gray-600); border: 1px solid var(--gray-200); }
+.status-blocked { background: #c62828; color: #fff; }
+.status-clear { background: #dcfce7; color: #15803d; }
+.h-bar-chart { display: flex; flex-direction: column; gap: 16px; }
+.h-bar-row { display: flex; align-items: center; gap: 12px; }
+.h-bar-label { width: 160px; font-size: 12px; font-weight: 500; color: var(--gray-700); flex-shrink: 0; }
+.h-bar-track { flex: 1; height: 24px; background: var(--gray-100); border-radius: 4px; overflow: hidden; position: relative; }
+.h-bar-fill { height: 100%; border-radius: 4px; transition: width 1s ease; display: flex; align-items: center; padding-left: 8px; }
+.h-bar-value { font-size: 11px; font-weight: 700; color: #fff; }
+
+/* ===== REPORTS STYLES ===== */
+.report-tabs { display: flex; gap: 0; margin-bottom: 24px; background: #fff; border-radius: var(--radius); box-shadow: var(--shadow); border: 1px solid var(--gray-200); overflow: hidden; }
+.report-tab { flex: 1; padding: 14px 16px; text-align: center; font-size: 12px; font-weight: 600; cursor: pointer; transition: all 0.2s; color: var(--gray-500); border-right: 1px solid var(--gray-200); background: #fff; }
+.report-tab:last-child { border-right: none; }
+.report-tab:hover { background: var(--gray-50); color: var(--gray-700); }
+.report-tab.active { background: var(--blue); color: #fff; }
+.score-badge { display: inline-flex; align-items: center; justify-content: center; min-width: 36px; height: 24px; border-radius: 6px; font-size: 11px; font-weight: 700; padding: 0 6px; }
+.score-high { background: #dcfce7; color: #15803d; }
+.score-mid { background: #fef3c7; color: #92400e; }
+.score-low { background: #fce4ec; color: #c62828; }
+.rating-stars { color: var(--amber); font-size: 12px; letter-spacing: 1px; }
+
+/* ===== ALERTS MANAGEMENT STYLES ===== */
+.severity-badge { display: inline-flex; align-items: center; gap: 4px; padding: 3px 10px; border-radius: 20px; font-size: 10px; font-weight: 700; text-transform: uppercase; }
+.severity-critical { background: #fce4ec; color: #c62828; }
+.severity-high { background: #fff3e0; color: #e65100; }
+.severity-medium { background: #fef3c7; color: #92400e; }
+.severity-low { background: #dbeafe; color: #1e40af; }
+.resolution-open { background: #fce4ec; color: #c62828; }
+.resolution-in-progress { background: #fef3c7; color: #92400e; }
+.resolution-resolved { background: #dcfce7; color: #15803d; }
+.resolution-escalated { background: #fff3e0; color: #e65100; }
+.escalation-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+.escalation-card { background: #fff; border-radius: var(--radius); padding: 20px; border: 1px solid var(--gray-200); border-left: 4px solid; box-shadow: var(--shadow); }
+.escalation-card.level-1 { border-left-color: var(--green); }
+.escalation-card.level-2 { border-left-color: var(--amber); }
+.escalation-card.level-3 { border-left-color: var(--red); }
+.escalation-level { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; }
+.escalation-card.level-1 .escalation-level { color: var(--green); }
+.escalation-card.level-2 .escalation-level { color: var(--amber); }
+.escalation-card.level-3 .escalation-level { color: var(--red); }
+.escalation-person { font-size: 16px; font-weight: 700; margin-bottom: 4px; }
+.escalation-role { font-size: 12px; color: var(--gray-500); margin-bottom: 12px; }
+.escalation-triggers { font-size: 11px; padding: 10px 12px; background: var(--gray-50); border-radius: var(--radius-sm); color: var(--gray-600); line-height: 1.6; }
+
+/* ===== INTANGLES-SPECIFIC STYLES ===== */
+.conn-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; margin-right: 4px; }
+.conn-dot.green { background: var(--green); }
+.conn-dot.red { background: var(--red); }
+.conn-dot.yellow { background: var(--amber); }
+
+/* Intangles stat grid */
+.intangles-stat-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; }
+@media (min-width: 640px) { .intangles-stat-grid { grid-template-columns: repeat(3, 1fr); } }
+@media (min-width: 1024px) { .intangles-stat-grid { grid-template-columns: repeat(6, 1fr); } }
+.i-stat-card { background: #fff; border-radius: var(--radius-sm); padding: 16px; text-align: center; box-shadow: var(--shadow); border: 1px solid var(--gray-200); border-top: 3px solid var(--gray-300); }
+.i-stat-card .num { font-size: 32px; font-weight: 700; line-height: 1.1; }
+.i-stat-card .label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: var(--gray-500); margin-top: 4px; }
+.i-stat-card.total { border-color: var(--blue); } .i-stat-card.total .num { color: var(--blue); }
+.i-stat-card.moving { border-color: var(--green); } .i-stat-card.moving .num { color: var(--green); }
+.i-stat-card.stopped { border-color: var(--red); } .i-stat-card.stopped .num { color: var(--red); }
+.i-stat-card.idling { border-color: var(--amber); } .i-stat-card.idling .num { color: var(--amber); }
+.i-stat-card.parked { border-color: var(--gray-400); } .i-stat-card.parked .num { color: var(--gray-400); }
+.i-stat-card.offline { border-color: var(--gray-700); } .i-stat-card.offline .num { color: var(--gray-700); }
+
+/* Auth panel */
+.auth-panel { background: var(--primary-light); border-radius: var(--radius); margin-bottom: 20px; color: #fff; border: 1px solid rgba(255,255,255,0.1); }
+.auth-panel .card-header { border-color: rgba(255,255,255,0.1); cursor: pointer; }
+.auth-panel .card-header h3 { color: #fff; }
+.auth-panel .card-body { padding: 20px; }
+.auth-row { display: flex; gap: 12px; align-items: flex-end; flex-wrap: wrap; }
+.auth-field { flex: 1; min-width: 200px; }
+.auth-field label { display: block; font-size: 12px; color: var(--gray-400); margin-bottom: 4px; }
+.auth-field input { width: 100%; padding: 8px 12px; border-radius: var(--radius-sm); border: 1px solid rgba(255,255,255,0.2); background: rgba(255,255,255,0.08); color: #fff; font-size: 13px; font-family: inherit; }
+.auth-field input::placeholder { color: var(--gray-400); }
+.auth-field input:focus { outline: none; border-color: var(--blue); }
+.auth-separator { text-align: center; color: var(--gray-400); font-size: 12px; padding: 12px 0; }
+
+/* Intangles buttons */
+.i-btn { padding: 8px 16px; border-radius: var(--radius-sm); border: none; font-size: 13px; font-weight: 500; cursor: pointer; font-family: inherit; transition: opacity 0.15s; }
+.i-btn:hover { opacity: 0.85; }
+.i-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+.i-btn-blue { background: var(--blue); color: #fff; }
+.i-btn-green { background: var(--green); color: var(--primary); }
+.i-btn-sm { padding: 5px 10px; font-size: 12px; }
+.i-btn-outline { background: transparent; border: 1px solid var(--gray-300); color: var(--gray-600); }
+
+/* Intangles tables */
+.intangles-view table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.intangles-view th { background: var(--gray-50); text-align: left; padding: 10px 12px; font-weight: 600; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--gray-500); border-bottom: 2px solid var(--gray-200); white-space: nowrap; }
+.intangles-view td { padding: 10px 12px; border-bottom: 1px solid var(--gray-100); vertical-align: middle; }
+.intangles-view tr:hover td { background: var(--gray-50); }
+
+/* Intangles badges */
+.i-badge { display: inline-block; padding: 3px 8px; border-radius: 20px; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.3px; }
+.i-badge-green { background: #d1fae5; color: #065f46; }
+.i-badge-red { background: #ffe4e6; color: #9f1239; }
+.i-badge-amber { background: #fef3c7; color: #92400e; }
+.i-badge-gray { background: #f1f5f9; color: #475569; }
+.i-badge-blue { background: #dbeafe; color: #1e40af; }
+.i-badge-slate { background: #e2e8f0; color: #1e293b; }
+
+/* JSON viewer */
+.json-viewer { background: var(--gray-800); color: #e2e8f0; padding: 16px; border-radius: var(--radius-sm); font-family: 'SF Mono', Menlo, monospace; font-size: 12px; line-height: 1.5; max-height: 500px; overflow: auto; white-space: pre-wrap; word-break: break-all; }
+.json-key { color: #c084fc; }
+.json-str { color: #86efac; }
+.json-num { color: #93c5fd; }
+.json-bool { color: #fdba74; }
+.json-null { color: var(--gray-400); }
+
+/* Loading & Errors */
+.i-loading { text-align: center; padding: 40px; color: var(--gray-400); }
+.i-spinner { display: inline-block; width: 24px; height: 24px; border: 3px solid var(--gray-200); border-top-color: var(--blue); border-radius: 50%; animation: spin 0.6s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.i-error-msg { background: #fff1f2; color: #9f1239; padding: 12px 16px; border-radius: var(--radius-sm); font-size: 13px; border-left: 3px solid var(--red); }
+.i-info-msg { background: #eff6ff; color: #1e40af; padding: 12px 16px; border-radius: var(--radius-sm); font-size: 13px; border-left: 3px solid var(--blue); }
+
+/* Intangles controls */
+.i-controls { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 12px; }
+.i-controls select, .i-controls input[type="text"] { padding: 6px 10px; border: 1px solid var(--gray-200); border-radius: var(--radius-sm); font-size: 13px; font-family: inherit; background: #fff; }
+
+/* Pagination */
+.i-pagination { display: flex; align-items: center; justify-content: space-between; padding: 12px 0; font-size: 13px; color: var(--gray-500); }
+
+/* Info grid */
+.i-info-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 12px; }
+.i-info-item label { font-size: 11px; color: var(--gray-400); text-transform: uppercase; letter-spacing: 0.5px; display: block; }
+.i-info-item .val { font-size: 14px; font-weight: 500; margin-top: 2px; }
+
+/* Collapsible sections */
+.i-card { background: #fff; border-radius: var(--radius); box-shadow: var(--shadow); margin-bottom: 20px; overflow: hidden; border: 1px solid var(--gray-200); }
+.i-card-header { padding: 16px 20px; border-bottom: 1px solid var(--gray-200); display: flex; align-items: center; justify-content: space-between; cursor: pointer; }
+.i-card-header h3 { font-size: 14px; font-weight: 600; }
+.i-card-header .toggle { font-size: 18px; color: var(--gray-400); transition: transform 0.2s; }
+.i-card-header .toggle.collapsed { transform: rotate(-90deg); }
+.i-card-body { padding: 20px; }
+.i-card-body.hidden { display: none; }
+
+/* Live indicator */
+.live-indicator { display: inline-flex; align-items: center; gap: 6px; font-size: 11px; font-weight: 600; color: var(--green); }
+.live-indicator .live-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--green); animation: live-pulse 1.5s ease-in-out infinite; }
+@keyframes live-pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+
+/* Connection banner */
+.conn-banner { background: #eff6ff; border: 1px solid #bfdbfe; border-radius: var(--radius-sm); padding: 10px 16px; margin-bottom: 16px; font-size: 13px; color: #1e40af; display: flex; align-items: center; justify-content: space-between; }
+.conn-banner a { color: var(--blue); font-weight: 600; cursor: pointer; text-decoration: none; }
+.conn-banner a:hover { text-decoration: underline; }
+
+/* ===== UTILITIES ===== */
+.mb-24 { margin-bottom: 24px; }
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--gray-300); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--gray-400); }
+</style>
+</head>
+<body>
+
+<div class="app">
+  <!-- ===== SIDEBAR ===== -->
+  <aside class="sidebar">
+    <div class="sidebar-brand">
+      <div class="logo">A2T</div>
+      <div>
+        <h1>A2T Fleet Manager</h1>
+        <p>Logistics Operations Platform</p>
+      </div>
+    </div>
+
+    <nav class="sidebar-nav">
+      <div class="sidebar-section">
+        <div class="sidebar-section-title">Dashboards</div>
+        <div class="nav-item active" data-view="ops" onclick="switchView('ops', this)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+          Operations
+        </div>
+        <div class="nav-item" data-view="business" onclick="switchView('business', this)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12V7H5a2 2 0 010-4h14v4"/><path d="M3 5v14a2 2 0 002 2h16v-5"/><path d="M18 12a2 2 0 000 4h4v-4h-4z"/></svg>
+          Executive
+        </div>
+        <div class="nav-item" data-view="intangles" onclick="switchView('intangles', this)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+          Intangles Live
+          <span id="navConnDot" class="conn-dot yellow" style="margin-left:auto"></span>
+        </div>
+      </div>
+
+      <div class="sidebar-section">
+        <div class="sidebar-section-title">Mobile Apps</div>
+        <div class="nav-item" data-view="driver" onclick="switchView('driver', this)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>
+          Driver App
+        </div>
+        <div class="nav-item" data-view="mechanic" onclick="switchView('mechanic', this)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/></svg>
+          Mechanic App
+        </div>
+      </div>
+
+      <div class="sidebar-section">
+        <div class="sidebar-section-title">Management</div>
+        <div class="nav-item" data-view="fleet" onclick="switchView('fleet', this)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>
+          Fleet
+        </div>
+        <div class="nav-item" data-view="documents" onclick="switchView('documents', this)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6"/><path d="M16 13H8"/><path d="M16 17H8"/><path d="M10 9H8"/></svg>
+          Documents
+        </div>
+        <div class="nav-item" data-view="compliance" onclick="switchView('compliance', this)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+          Compliance
+        </div>
+        <div class="nav-item" data-view="reports" onclick="switchView('reports', this)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2"/><path d="M1 10h22"/></svg>
+          Reports
+        </div>
+        <div class="nav-item" data-view="alerts" onclick="switchView('alerts', this)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+          Alerts
+          <span class="nav-badge">3</span>
+        </div>
+      </div>
+    </nav>
+
+    <div class="sidebar-user">
+      <div class="avatar">GM</div>
+      <div>
+        <div class="info">George Mello</div>
+        <div class="role">Operations Manager</div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- ===== MAIN ===== -->
+  <div class="main">
+    <!-- Top bars -->
+    <div class="topbar" id="topbar-ops">
+      <div class="topbar-title">Operations Dashboard</div>
+      <div class="topbar-subtitle">Live Fleet Monitoring</div>
+      <div class="topbar-actions">
+        <span id="opsConnStatus" style="font-size:12px;color:var(--gray-400)"></span>
+        <input type="text" class="topbar-search" placeholder="Search vehicles, trips...">
+        <div class="notification-bell">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg>
+          <div class="dot"></div>
+        </div>
+        <button class="topbar-btn topbar-btn-primary">+ New Trip</button>
+      </div>
+    </div>
+    <div class="topbar" id="topbar-business" style="display:none">
+      <div class="topbar-title">Executive Dashboard</div>
+      <div class="topbar-subtitle">Performance & Analytics</div>
+      <div class="topbar-actions">
+        <button class="topbar-btn topbar-btn-outline">This Month</button>
+        <button class="topbar-btn topbar-btn-primary">Export Report</button>
+      </div>
+    </div>
+    <div class="topbar" id="topbar-intangles" style="display:none">
+      <div class="topbar-title">Intangles Live Data</div>
+      <div class="topbar-subtitle"><span id="intanglesConnLabel"><span class="conn-dot yellow"></span> Checking...</span></div>
+      <div class="topbar-actions">
+        <span id="intanglesLastUpdated" style="font-size:12px;color:var(--gray-400)"></span>
+        <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:12px;color:var(--gray-500)">
+          <input type="checkbox" id="autoRefresh"> Auto-refresh
+          <select id="refreshInterval" style="padding:2px 4px;font-size:12px;border-radius:4px;border:1px solid var(--gray-200);background:#fff;">
+            <option value="30">30s</option>
+            <option value="60" selected>60s</option>
+            <option value="120">2m</option>
+          </select>
+        </label>
+        <button class="topbar-btn topbar-btn-primary" onclick="loadAllIntangles()">Refresh All</button>
+      </div>
+    </div>
+    <div class="topbar" id="topbar-driver" style="display:none">
+      <div class="topbar-title">Driver Mobile App</div>
+      <div class="topbar-subtitle">Preview - iOS & Android</div>
+    </div>
+    <div class="topbar" id="topbar-mechanic" style="display:none">
+      <div class="topbar-title">Mechanic Mobile App</div>
+      <div class="topbar-subtitle">Preview - iOS & Android</div>
+    </div>
+    <div class="topbar" id="topbar-fleet" style="display:none">
+      <div class="topbar-title">Fleet Management</div>
+      <div class="topbar-subtitle">Vehicle Registry & Performance</div>
+      <div class="topbar-actions">
+        <input type="text" class="topbar-search" placeholder="Search vehicles...">
+        <button class="topbar-btn topbar-btn-outline">Filters</button>
+        <button class="topbar-btn topbar-btn-primary">+ Add Vehicle</button>
+      </div>
+    </div>
+    <div class="topbar" id="topbar-documents" style="display:none">
+      <div class="topbar-title">Documents Management</div>
+      <div class="topbar-subtitle">Verification & Compliance</div>
+      <div class="topbar-actions">
+        <input type="text" class="topbar-search" placeholder="Search documents...">
+        <button class="topbar-btn topbar-btn-primary">Upload Document</button>
+      </div>
+    </div>
+    <div class="topbar" id="topbar-compliance" style="display:none">
+      <div class="topbar-title">Compliance Management</div>
+      <div class="topbar-subtitle">Regulatory Tracking & Expiry Calendar</div>
+      <div class="topbar-actions">
+        <button class="topbar-btn topbar-btn-outline">Export Compliance Report</button>
+        <button class="topbar-btn topbar-btn-primary">Schedule Renewal</button>
+      </div>
+    </div>
+    <div class="topbar" id="topbar-reports" style="display:none">
+      <div class="topbar-title">Reports</div>
+      <div class="topbar-subtitle">Analytics & Export Center</div>
+      <div class="topbar-actions">
+        <button class="topbar-btn topbar-btn-outline">Date Range: Last 30 Days</button>
+        <button class="topbar-btn topbar-btn-primary">Export Excel</button>
+      </div>
+    </div>
+    <div class="topbar" id="topbar-alerts" style="display:none">
+      <div class="topbar-title">Alerts Management</div>
+      <div class="topbar-subtitle">Monitoring & Escalation</div>
+      <div class="topbar-actions">
+        <input type="text" class="topbar-search" placeholder="Search alerts...">
+        <button class="topbar-btn topbar-btn-primary">Mark All Read</button>
+      </div>
+    </div>
+
+    <!-- ===== CONTENT ===== -->
+    <div class="content">
+
+      <!-- Due to file size, I'm including a placeholder comment for views that are copied verbatim.
+           The actual content is generated from the FMS Prototype. -->
+
+      <!-- ==================== OPERATIONS VIEW ==================== -->
+      <div class="view active" id="view-ops">
+        <div id="opsConnBanner"></div>
+        <!-- Stats -->
+        <div class="stats-grid" id="ops-fleet-stats">
+          <div class="stat-card" id="ops-stat-total">
+            <div class="stat-icon" style="background:#dcfce7">
+              <svg viewBox="0 0 24 24" fill="none" stroke="#15803d" stroke-width="2"><rect x="1" y="3" width="15" height="13" rx="2"/><path d="M16 8h4l3 3v5h-7V8z"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
+            </div>
+            <div class="stat-value" id="ops-total-val">24</div>
+            <div class="stat-label">Total Fleet</div>
+            <div class="stat-change up" id="ops-total-change">+2 this month</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon" style="background:#dbeafe">
+              <svg viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+            </div>
+            <div class="stat-value" style="color:var(--blue)" id="ops-trips-val">18</div>
+            <div class="stat-label">Active Trips</div>
+            <div class="stat-change up">+5 vs yesterday</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon" style="background:#fef3c7">
+              <svg viewBox="0 0 24 24" fill="none" stroke="#d97706" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>
+            </div>
+            <div class="stat-value" style="color:var(--orange)" id="ops-idle-val">4</div>
+            <div class="stat-label">Idle / Waiting</div>
+            <div class="stat-change down" id="ops-idle-change">Avg wait: 1.5 hrs</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon" style="background:#fce4ec">
+              <svg viewBox="0 0 24 24" fill="none" stroke="#dc2626" stroke-width="2"><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/></svg>
+            </div>
+            <div class="stat-value" style="color:var(--red)">2</div>
+            <div class="stat-label">Under Maintenance</div>
+            <div class="stat-change">1 scheduled today</div>
+          </div>
+        </div>
+
+        <!-- Map + Trip Feed -->
+        <div class="ops-layout">
+          <div class="ops-map-area">
+            <div class="map-container">
+              <div class="map-placeholder">
+                <div class="map-overlay"></div>
+                <div class="map-road map-road-h" style="top:35%"></div>
+                <div class="map-road map-road-h" style="top:65%"></div>
+                <div class="map-road map-road-v" style="left:30%"></div>
+                <div class="map-road map-road-v" style="left:60%"></div>
+                <div class="map-road map-road-v" style="left:80%"></div>
+                <div class="map-location" style="top:12%;left:18%">TNPM Port</div>
+                <div class="map-location" style="top:20%;left:72%">Kattupalli Port</div>
+                <div class="map-location" style="top:55%;left:45%">CONCOR Yard</div>
+                <div class="map-location" style="top:78%;left:15%">CITPL CFS</div>
+                <div class="map-location" style="top:80%;left:70%">Factory - BLR</div>
+                <div class="vehicle-marker" style="top:28%;left:35%">
+                  <div class="vehicle-label">TN03AJ9743</div>
+                  <div class="vehicle-dot moving"><div class="pulse"></div><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><rect x="1" y="6" width="15" height="10" rx="1"/><path d="M16 8h4l3 3v5h-7z"/><circle cx="5.5" cy="18.5" r="2"/><circle cx="18.5" cy="18.5" r="2"/></svg></div>
+                </div>
+                <div class="vehicle-marker" style="top:18%;left:62%">
+                  <div class="vehicle-label">TN03AJ9753</div>
+                  <div class="vehicle-dot moving"><div class="pulse"></div><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><rect x="1" y="6" width="15" height="10" rx="1"/><path d="M16 8h4l3 3v5h-7z"/><circle cx="5.5" cy="18.5" r="2"/><circle cx="18.5" cy="18.5" r="2"/></svg></div>
+                </div>
+                <div class="vehicle-marker" style="top:50%;left:48%">
+                  <div class="vehicle-label">TN07BK4521</div>
+                  <div class="vehicle-dot idle"><div class="pulse"></div><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><rect x="1" y="6" width="15" height="10" rx="1"/><path d="M16 8h4l3 3v5h-7z"/><circle cx="5.5" cy="18.5" r="2"/><circle cx="18.5" cy="18.5" r="2"/></svg></div>
+                </div>
+                <div class="vehicle-marker" style="top:72%;left:22%">
+                  <div class="vehicle-label">TN09CD1234</div>
+                  <div class="vehicle-dot moving"><div class="pulse"></div><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><rect x="1" y="6" width="15" height="10" rx="1"/><path d="M16 8h4l3 3v5h-7z"/><circle cx="5.5" cy="18.5" r="2"/><circle cx="18.5" cy="18.5" r="2"/></svg></div>
+                </div>
+                <div class="vehicle-marker" style="top:60%;left:75%">
+                  <div class="vehicle-label">TN11EF5678</div>
+                  <div class="vehicle-dot alert"><div class="pulse"></div><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><rect x="1" y="6" width="15" height="10" rx="1"/><path d="M16 8h4l3 3v5h-7z"/><circle cx="5.5" cy="18.5" r="2"/><circle cx="18.5" cy="18.5" r="2"/></svg></div>
+                </div>
+                <div class="map-legend">
+                  <div class="legend-item"><div class="legend-dot" style="background:var(--green)"></div> Moving</div>
+                  <div class="legend-item"><div class="legend-dot" style="background:var(--amber)"></div> Idle</div>
+                  <div class="legend-item"><div class="legend-dot" style="background:var(--red)"></div> Alert</div>
+                </div>
+              </div>
+            </div>
+            <div class="card">
+              <div class="card-header">
+                <h3>Live Alerts</h3>
+                <span style="font-size:11px;color:var(--gray-400)">3 unread</span>
+              </div>
+              <div class="card-body">
+                <div class="alerts-panel">
+                  <div class="alert-item alert-critical">
+                    <div class="alert-dot"></div>
+                    <div class="alert-text">
+                      <strong>TN11EF5678</strong> - Vehicle breakdown reported near Hosur. Driver: Murugan. Mechanic dispatched.
+                      <div class="alert-time">2 min ago</div>
+                    </div>
+                  </div>
+                  <div class="alert-item alert-warning">
+                    <div class="alert-dot"></div>
+                    <div class="alert-text">
+                      <strong>TN07BK4521</strong> - Waiting at CONCOR Yard for 2.5 hours. Reason: Queue.
+                      <div class="alert-time">18 min ago</div>
+                    </div>
+                  </div>
+                  <div class="alert-item alert-info">
+                    <div class="alert-dot"></div>
+                    <div class="alert-text">
+                      <strong>TN03AJ9753</strong> - Entered Kattupalli Port geo-fence zone. Gate In confirmed.
+                      <div class="alert-time">25 min ago</div>
+                    </div>
+                  </div>
+                </div>
+                <div id="ops-live-alerts" style="margin-top:8px"></div>
+              </div>
+            </div>
+          </div>
+          <div class="trip-feed">
+            <div style="font-size:14px;font-weight:700;margin-bottom:4px;">Active Trips</div>
+            <div style="font-size:11px;color:var(--gray-400);margin-bottom:12px;">18 trips in progress</div>
+            <div class="trip-card">
+              <div class="trip-card-header">
+                <span class="trip-card-vehicle">TN 03 AJ 9743</span>
+                <span class="trip-card-badge badge-active">In Transit</span>
+              </div>
+              <div class="trip-card-route">TNPM <span class="arrow">&rarr;</span> Kattupalli <span class="arrow">&rarr;</span> TNPM</div>
+              <div class="trip-card-driver">Driver: Selvakumar &bull; Import</div>
+              <div class="trip-timeline">
+                <div class="timeline-step"><div class="timeline-dot-container"><div class="timeline-dot done"></div><div class="timeline-line done"></div></div><span class="timeline-text"><strong>TNPM Gate Out</strong></span><span class="timeline-time">11:34</span></div>
+                <div class="timeline-step"><div class="timeline-dot-container"><div class="timeline-dot done"></div><div class="timeline-line done"></div></div><span class="timeline-text"><strong>Kattupalli Gate In</strong></span><span class="timeline-time">12:35</span></div>
+                <div class="timeline-step"><div class="timeline-dot-container"><div class="timeline-dot done"></div><div class="timeline-line done"></div></div><span class="timeline-text">EIR Received</span><span class="timeline-time">13:03</span></div>
+                <div class="timeline-step"><div class="timeline-dot-container"><div class="timeline-dot current"></div><div class="timeline-line"></div></div><span class="timeline-text active"><strong>Loading...</strong></span><span class="timeline-time">14:20</span></div>
+                <div class="timeline-step"><div class="timeline-dot-container"><div class="timeline-dot pending"></div></div><span class="timeline-text" style="color:var(--gray-400)">Kattupalli Gate Out</span><span class="timeline-time">--:--</span></div>
+              </div>
+            </div>
+            <div class="trip-card">
+              <div class="trip-card-header"><span class="trip-card-vehicle">TN 03 AJ 9753</span><span class="trip-card-badge badge-active">In Transit</span></div>
+              <div class="trip-card-route">TNPM <span class="arrow">&rarr;</span> CITPL <span class="arrow">&rarr;</span> BLR</div>
+              <div class="trip-card-driver">Driver: Rajesh &bull; Export</div>
+              <div class="trip-card-time">Started: 08:15 &bull; ETA: 17:30</div>
+            </div>
+            <div class="trip-card">
+              <div class="trip-card-header"><span class="trip-card-vehicle">TN 07 BK 4521</span><span class="trip-card-badge badge-waiting">Waiting</span></div>
+              <div class="trip-card-route">CFS <span class="arrow">&rarr;</span> CONCOR Yard</div>
+              <div class="trip-card-driver">Driver: Kumar &bull; Import</div>
+              <div class="trip-card-time">Waiting since: 11:45 &bull; Reason: Queue</div>
+            </div>
+            <div class="trip-card">
+              <div class="trip-card-header"><span class="trip-card-vehicle">TN 09 CD 1234</span><span class="trip-card-badge badge-active">In Transit</span></div>
+              <div class="trip-card-route">CITPL CFS <span class="arrow">&rarr;</span> Factory</div>
+              <div class="trip-card-driver">Driver: Ganesh &bull; Import</div>
+              <div class="trip-card-time">Started: 09:30 &bull; ETA: 15:45</div>
+            </div>
+            <div class="trip-card">
+              <div class="trip-card-header"><span class="trip-card-vehicle">TN 11 EF 5678</span><span class="trip-card-badge badge-alert">Breakdown</span></div>
+              <div class="trip-card-route">TNPM <span class="arrow">&rarr;</span> Factory BLR</div>
+              <div class="trip-card-driver">Driver: Murugan &bull; Export</div>
+              <div class="trip-card-time">Stopped near Hosur &bull; Mechanic dispatched</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ==================== INTANGLES LIVE VIEW ==================== -->
+      <div class="view intangles-view" id="view-intangles">
+        <!-- Auth Panel -->
+        <div class="auth-panel" id="intanglesAuthPanel">
+          <div class="i-card-header" onclick="toggleIntanglesSection('intanglesAuthBody')">
+            <h3 id="intanglesAuthTitle">Authentication</h3>
+            <span class="toggle" id="intanglesAuthToggle">&#9660;</span>
+          </div>
+          <div class="i-card-body" id="intanglesAuthBody">
+            <div style="margin-bottom:16px;">
+              <div class="auth-row">
+                <div class="auth-field" style="flex:3;">
+                  <label>Current Token</label>
+                  <input type="text" id="tokenInput" placeholder="Paste token here...">
+                </div>
+                <button class="i-btn i-btn-green" onclick="useToken()">Use Token</button>
+              </div>
+            </div>
+            <div class="auth-separator">-- or login to get a new token --</div>
+            <div class="auth-row">
+              <div class="auth-field">
+                <label>Email / Phone</label>
+                <input type="text" id="emailInput" placeholder="email@example.com">
+              </div>
+              <div class="auth-field">
+                <label>Password</label>
+                <input type="password" id="passwordInput" placeholder="Enter password">
+              </div>
+              <button class="i-btn i-btn-blue" id="loginBtn" onclick="doLogin()">Login</button>
+            </div>
+            <div id="authMsg" style="margin-top:12px;"></div>
+          </div>
+        </div>
+
+        <!-- Fleet Summary -->
+        <div class="i-card">
+          <div class="i-card-header" onclick="toggleIntanglesSection('intanglesFleetBody')">
+            <h3>Fleet Summary <span class="live-indicator" id="fleetLiveIndicator" style="display:none"><span class="live-dot"></span> LIVE</span></h3>
+            <span class="toggle" id="intanglesFleetToggle">&#9660;</span>
+          </div>
+          <div class="i-card-body" id="intanglesFleetBody">
+            <div id="intanglesFleetContent"><div class="i-loading"><div class="i-spinner"></div></div></div>
+          </div>
+        </div>
+
+        <!-- Vehicle List -->
+        <div class="i-card">
+          <div class="i-card-header" onclick="toggleIntanglesSection('intanglesVehicleBody')">
+            <h3>Vehicles</h3>
+            <span class="toggle" id="intanglesVehicleToggle">&#9660;</span>
+          </div>
+          <div class="i-card-body" id="intanglesVehicleBody">
+            <div class="i-controls">
+              <input type="text" id="intanglesVehicleSearch" placeholder="Search vehicle..." oninput="filterIntanglesVehicles()">
+              <select id="intanglesVehiclePageSize" onchange="STATE.vehiclePage=1;loadIntanglesVehicles()">
+                <option value="25">25 per page</option>
+                <option value="50">50 per page</option>
+                <option value="100">100 per page</option>
+              </select>
+            </div>
+            <div id="intanglesVehicleContent"><div class="i-loading"><div class="i-spinner"></div></div></div>
+          </div>
+        </div>
+
+        <!-- Geofences -->
+        <div class="i-card">
+          <div class="i-card-header" onclick="toggleIntanglesSection('intanglesGeofenceBody')">
+            <h3>Geofences</h3>
+            <span class="toggle" id="intanglesGeofenceToggle">&#9660;</span>
+          </div>
+          <div class="i-card-body" id="intanglesGeofenceBody">
+            <div id="intanglesGeofenceContent"><div class="i-loading"><div class="i-spinner"></div></div></div>
+          </div>
+        </div>
+
+        <!-- Alerts -->
+        <div class="i-card">
+          <div class="i-card-header" onclick="toggleIntanglesSection('intanglesAlertBody')">
+            <h3>Recent Alerts (Intangles)</h3>
+            <span class="toggle" id="intanglesAlertToggle">&#9660;</span>
+          </div>
+          <div class="i-card-body" id="intanglesAlertBody">
+            <div class="i-controls">
+              <select id="intanglesAlertType" onchange="STATE.alertPage=1;loadIntanglesAlerts()">
+                <option value="">All Types</option>
+                <option value="over_speed">Over Speed</option>
+                <option value="geofence_in">Geofence In</option>
+                <option value="geofence_out">Geofence Out</option>
+                <option value="harsh_braking">Harsh Braking</option>
+                <option value="idle">Idle</option>
+              </select>
+              <select id="intanglesAlertRange" onchange="STATE.alertPage=1;loadIntanglesAlerts()">
+                <option value="24">Last 24 Hours</option>
+                <option value="168">Last 7 Days</option>
+                <option value="720">Last 30 Days</option>
+              </select>
+            </div>
+            <div id="intanglesAlertContent"><div class="i-loading"><div class="i-spinner"></div></div></div>
+          </div>
+        </div>
+
+        <!-- Account Info -->
+        <div class="i-card">
+          <div class="i-card-header" onclick="toggleIntanglesSection('intanglesAccountBody')">
+            <h3>Account Info</h3>
+            <span class="toggle" id="intanglesAccountToggle">&#9660;</span>
+          </div>
+          <div class="i-card-body" id="intanglesAccountBody">
+            <div id="intanglesAccountContent"><div class="i-loading"><div class="i-spinner"></div></div></div>
+          </div>
+        </div>
+
+        <!-- Raw API Explorer -->
+        <div class="i-card">
+          <div class="i-card-header" onclick="toggleIntanglesSection('intanglesExplorerBody')">
+            <h3>Raw API Explorer</h3>
+            <span class="toggle" id="intanglesExplorerToggle">&#9660;</span>
+          </div>
+          <div class="i-card-body" id="intanglesExplorerBody">
+            <div class="i-controls">
+              <select id="intanglesExplorerEndpoint" style="flex:1;min-width:300px;">
+                <option value="/v2/user/getbytoken/{token}?lang=en">GET /v2/user/getbytoken/{token}</option>
+                <option value="/vehicle/getstatescount?lastloc=true&__read_from_secondary=true&connection_states=true&groups=&accounts_with_access={accId}&lang=en">GET /vehicle/getstatescount</option>
+                <option value="/vehicle/getlist?pnum=1&psize=25&lastloc=true&proj=auxiliary_devices&algos_only=true&get_account_names=true&acc_id={accId}&lang=en">GET /vehicle/getlist</option>
+                <option value="/geofence/listV2?psize=50&pnum=1&query=*&acc_id={accId}&lang=en">GET /geofence/listV2</option>
+                <option value="/accountV2/{accId}?lang=en">GET /accountV2</option>
+                <option value="/group/listV2?psize=100&pnum=1&acc_id={accId}&lang=en">GET /group/listV2</option>
+              </select>
+              <input type="text" id="intanglesCustomEndpoint" placeholder="Or enter custom path..." style="flex:1;min-width:200px;">
+              <button class="i-btn i-btn-blue" onclick="fetchExplorer()">Fetch</button>
+            </div>
+            <div id="intanglesExplorerContent" class="json-viewer" style="min-height:60px;">Select an endpoint and click Fetch</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ==================== BUSINESS/EXECUTIVE VIEW ==================== -->
+      <div class="view" id="view-business">
+        <div class="kpi-grid">
+          <div class="kpi-card"><div class="kpi-header"><span class="kpi-title">Vehicle Utilisation</span><span class="kpi-trend up">&uarr; 8%</span></div><div class="kpi-value">78%</div><div class="kpi-target">Target: 85%</div><div class="kpi-bar"><div class="kpi-bar-fill" style="width:78%;background:var(--blue)"></div></div></div>
+          <div class="kpi-card"><div class="kpi-header"><span class="kpi-title">On-Time Delivery</span><span class="kpi-trend up">&uarr; 12%</span></div><div class="kpi-value" style="color:var(--green)">92%</div><div class="kpi-target">Target: 90%</div><div class="kpi-bar"><div class="kpi-bar-fill" style="width:92%;background:var(--green)"></div></div></div>
+          <div class="kpi-card"><div class="kpi-header"><span class="kpi-title">Fuel Efficiency</span><span class="kpi-trend down">&darr; 3%</span></div><div class="kpi-value">4.2</div><div class="kpi-target">km/litre &bull; Target: 4.5</div><div class="kpi-bar"><div class="kpi-bar-fill" style="width:70%;background:var(--orange)"></div></div></div>
+          <div class="kpi-card"><div class="kpi-header"><span class="kpi-title">Avg Turnaround</span><span class="kpi-trend up">&uarr; 15%</span></div><div class="kpi-value">6.2<span style="font-size:16px;color:var(--gray-400)">hrs</span></div><div class="kpi-target">Target: 5.5 hrs</div><div class="kpi-bar"><div class="kpi-bar-fill" style="width:65%;background:var(--amber)"></div></div></div>
+          <div class="kpi-card"><div class="kpi-header"><span class="kpi-title">Maintenance Ratio</span><span class="kpi-trend up">&uarr; 20%</span></div><div class="kpi-value" style="color:var(--green)">85%</div><div class="kpi-target">Preventive vs Unscheduled</div><div class="kpi-bar"><div class="kpi-bar-fill" style="width:85%;background:var(--green)"></div></div></div>
+          <div class="kpi-card"><div class="kpi-header"><span class="kpi-title">Compliance Rate</span><span class="kpi-trend up">&uarr; 5%</span></div><div class="kpi-value" style="color:var(--blue)">97%</div><div class="kpi-target">Insurance, PUC, License</div><div class="kpi-bar"><div class="kpi-bar-fill" style="width:97%;background:var(--blue)"></div></div></div>
+        </div>
+        <div class="chart-grid">
+          <div class="chart-container">
+            <div class="chart-title">Trip Volume - Last 7 Days</div>
+            <div class="bar-chart">
+              <div class="bar-group"><div class="bar-value">18</div><div class="bar" style="height:72%;background:var(--blue)"></div><div class="bar-label">Mon</div></div>
+              <div class="bar-group"><div class="bar-value">22</div><div class="bar" style="height:88%;background:var(--blue)"></div><div class="bar-label">Tue</div></div>
+              <div class="bar-group"><div class="bar-value">15</div><div class="bar" style="height:60%;background:var(--blue)"></div><div class="bar-label">Wed</div></div>
+              <div class="bar-group"><div class="bar-value">25</div><div class="bar" style="height:100%;background:var(--blue)"></div><div class="bar-label">Thu</div></div>
+              <div class="bar-group"><div class="bar-value">20</div><div class="bar" style="height:80%;background:var(--blue)"></div><div class="bar-label">Fri</div></div>
+              <div class="bar-group"><div class="bar-value">12</div><div class="bar" style="height:48%;background:var(--gray-300)"></div><div class="bar-label">Sat</div></div>
+              <div class="bar-group"><div class="bar-value">8</div><div class="bar" style="height:32%;background:var(--gray-300)"></div><div class="bar-label">Sun</div></div>
+            </div>
+          </div>
+          <div class="chart-container" id="exec-donut-container">
+            <div class="chart-title">Fleet Status <span class="live-indicator" id="execLiveIndicator" style="display:none"><span class="live-dot"></span> LIVE</span></div>
+            <div id="exec-donut-data">
+              <div class="donut-chart" style="background:conic-gradient(var(--green) 0deg 216deg, var(--amber) 216deg 270deg, var(--red) 270deg 300deg, var(--gray-300) 300deg 360deg)">
+                <div class="donut-center"><div class="big">24</div><div class="small">Total Fleet</div></div>
+              </div>
+              <div class="donut-legend">
+                <div class="donut-legend-item"><div class="donut-legend-dot" style="background:var(--green)"></div>Active (15)</div>
+                <div class="donut-legend-item"><div class="donut-legend-dot" style="background:var(--amber)"></div>Idle (4)</div>
+                <div class="donut-legend-item"><div class="donut-legend-dot" style="background:var(--red)"></div>Maintenance (2)</div>
+                <div class="donut-legend-item"><div class="donut-legend-dot" style="background:var(--gray-300)"></div>Parked (3)</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header"><h3>Compliance Overview - Vehicles Needing Attention</h3></div>
+          <div class="card-body" style="padding:0">
+            <table class="compliance-table">
+              <thead><tr><th>Vehicle</th><th>Insurance</th><th>PUC</th><th>Fitness</th><th>Registration</th><th>Action</th></tr></thead>
+              <tbody>
+                <tr><td><strong>TN 03 AJ 9743</strong></td><td><span class="status-pill status-valid">Valid</span></td><td><span class="status-pill status-expiring">15 days</span></td><td><span class="status-pill status-valid">Valid</span></td><td><span class="status-pill status-valid">Valid</span></td><td><span style="color:var(--blue);font-size:12px;cursor:pointer;font-weight:600">Schedule &rarr;</span></td></tr>
+                <tr><td><strong>TN 07 BK 4521</strong></td><td><span class="status-pill status-valid">Valid</span></td><td><span class="status-pill status-valid">Valid</span></td><td><span class="status-pill status-expired">Expired</span></td><td><span class="status-pill status-valid">Valid</span></td><td><span style="color:var(--red);font-size:12px;cursor:pointer;font-weight:600">Blocked</span></td></tr>
+                <tr><td><strong>TN 11 EF 5678</strong></td><td><span class="status-pill status-expiring">7 days</span></td><td><span class="status-pill status-valid">Valid</span></td><td><span class="status-pill status-valid">Valid</span></td><td><span class="status-pill status-expiring">30 days</span></td><td><span style="color:var(--blue);font-size:12px;cursor:pointer;font-weight:600">Renew &rarr;</span></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- Remaining views are included via JavaScript template insertion for file size management -->
+      <div class="view" id="view-driver"></div>
+      <div class="view" id="view-mechanic"></div>
+      <div class="view" id="view-fleet"></div>
+      <div class="view" id="view-documents"></div>
+      <div class="view" id="view-compliance"></div>
+      <div class="view" id="view-reports"></div>
+      <div class="view" id="view-alerts"></div>
+
+    </div><!-- /content -->
+  </div><!-- /main -->
+</div><!-- /app -->
+
+<script>
+// ===== CONFIG =====
+const INTANGLES = {
+  API_BASE: '/api',
+  ACCOUNT_ID: '1218956597393358848',
+  DEFAULT_TOKEN: '9ODR-g95_rFnsMpy4Pxtx1LxVN9_2pc1TFpVtQl2cJR8Ra7m-H_VmwHAlWt8Fes9',
+  HEADERS_STATIC: {
+    'intangles-client': 'intangles_app',
+    'intangles-session-type': 'web',
+    'intangles-user-tz': 'Asia/Calcutta',
+  }
+};
+
+const STATE = {
+  token: null,
+  user: null,
+  connected: false,
+  currentView: 'ops',
+  vehiclePage: 1,
+  vehicleData: [],
+  geofencePage: 1,
+  alertPage: 1,
+  refreshTimer: null,
+  fleetSummary: null,
+  viewsLoaded: {},
+};
+
+// ===== INTANGLES API LAYER =====
+async function intanglesApi(path, options = {}) {
+  const url = INTANGLES.API_BASE + path;
+  const headers = {
+    ...INTANGLES.HEADERS_STATIC,
+    'intangles-user-token': STATE.token || '',
+    'Accept': 'application/json',
+    ...(options.headers || {}),
+  };
+  if (options.body && typeof options.body === 'object') {
+    headers['Content-Type'] = 'application/json';
+    options.body = JSON.stringify(options.body);
+  }
+  const resp = await fetch(url, { ...options, headers });
+  if (resp.status === 401 || resp.status === 403) {
+    handleTokenExpired();
+    throw new Error('Token expired or invalid');
+  }
+  if (!resp.ok) throw new Error('API ' + resp.status + ': ' + resp.statusText);
+  return resp.json();
+}
+
+function resolvePath(template) {
+  return template.replace(/\{accId\}/g, INTANGLES.ACCOUNT_ID).replace(/\{token\}/g, STATE.token || '');
+}
+
+// ===== AUTH =====
+function getToken() { return localStorage.getItem('IntanglesToken') || INTANGLES.DEFAULT_TOKEN; }
+function saveToken(token) { localStorage.setItem('IntanglesToken', token); STATE.token = token; }
+
+function updateConnectionUI(status) {
+  const dot = document.getElementById('navConnDot');
+  const label = document.getElementById('intanglesConnLabel');
+  const opsStat = document.getElementById('opsConnStatus');
+  if (status === 'connected') {
+    STATE.connected = true;
+    dot.className = 'conn-dot green';
+    if (label) label.innerHTML = '<span class="conn-dot green"></span> Connected';
+    if (opsStat) opsStat.innerHTML = '<span class="live-indicator"><span class="live-dot"></span> Intangles Live</span>';
+    document.getElementById('opsConnBanner').innerHTML = '';
+  } else if (status === 'disconnected') {
+    STATE.connected = false;
+    dot.className = 'conn-dot red';
+    if (label) label.innerHTML = '<span class="conn-dot red"></span> Not connected';
+    if (opsStat) opsStat.innerHTML = '<span class="conn-dot red"></span> Offline';
+    document.getElementById('opsConnBanner').innerHTML = '<div class="conn-banner">Connect to Intangles for live fleet data <a onclick="switchView(\'intangles\', document.querySelector(\'[data-view=intangles]\'))">Connect &rarr;</a></div>';
+  } else {
+    dot.className = 'conn-dot yellow';
+    if (label) label.innerHTML = '<span class="conn-dot yellow"></span> Checking...';
+    if (opsStat) opsStat.textContent = '';
+  }
+}
+
+async function validateToken() {
+  updateConnectionUI('checking');
+  try {
+    const data = await intanglesApi('/v2/user/getbytoken/' + STATE.token + '?lang=en');
+    STATE.user = data;
+    updateConnectionUI('connected');
+    document.getElementById('intanglesAuthTitle').textContent = 'Authentication (Connected)';
+    collapseIntanglesSection('intanglesAuthBody');
+    return true;
+  } catch (e) {
+    updateConnectionUI('disconnected');
+    document.getElementById('intanglesAuthTitle').textContent = 'Authentication (Token expired - login required)';
+    expandIntanglesSection('intanglesAuthBody');
+    return false;
+  }
+}
+
+function handleTokenExpired() {
+  updateConnectionUI('disconnected');
+  document.getElementById('intanglesAuthTitle').textContent = 'Authentication (Token expired - login required)';
+  expandIntanglesSection('intanglesAuthBody');
+  document.getElementById('authMsg').innerHTML = '<div class="i-error-msg">Token expired. Please login or enter a new token.</div>';
+}
+
+async function useToken() {
+  const val = document.getElementById('tokenInput').value.trim();
+  if (!val) return;
+  saveToken(val);
+  document.getElementById('authMsg').innerHTML = '<div class="i-info-msg">Validating token...</div>';
+  const ok = await validateToken();
+  if (ok) {
+    document.getElementById('authMsg').innerHTML = '<div class="i-info-msg">Token valid!</div>';
+    loadAllIntangles();
+    updateOpsWithLiveData();
+    updateExecWithLiveData();
+  } else {
+    document.getElementById('authMsg').innerHTML = '<div class="i-error-msg">Token is invalid or expired.</div>';
+  }
+}
+
+async function doLogin() {
+  const email = document.getElementById('emailInput').value.trim();
+  const password = document.getElementById('passwordInput').value;
+  if (!email || !password) {
+    document.getElementById('authMsg').innerHTML = '<div class="i-error-msg">Enter both email and password.</div>';
+    return;
+  }
+  const btn = document.getElementById('loginBtn');
+  btn.disabled = true; btn.textContent = 'Logging in...';
+  document.getElementById('authMsg').innerHTML = '<div class="i-info-msg">Logging in...</div>';
+  try {
+    const data = await fetch(INTANGLES.API_BASE + '/v2/user/login', {
+      method: 'POST',
+      headers: { ...INTANGLES.HEADERS_STATIC, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password })
+    }).then(r => r.json());
+    const token = data.token || data.UserToken || data.access_token || (data.data && data.data.token);
+    if (!token) {
+      document.getElementById('authMsg').innerHTML = '<div class="i-error-msg">Login succeeded but no token found. Check API Explorer.</div>';
+      return;
+    }
+    saveToken(token);
+    document.getElementById('tokenInput').value = token;
+    document.getElementById('authMsg').innerHTML = '<div class="i-info-msg">Login successful!</div>';
+    await validateToken();
+    loadAllIntangles();
+  } catch (e) {
+    document.getElementById('authMsg').innerHTML = '<div class="i-error-msg">Login failed: ' + e.message + '</div>';
+  } finally {
+    btn.disabled = false; btn.textContent = 'Login';
+  }
+}
+
+// ===== UI HELPERS =====
+function toggleIntanglesSection(id) {
+  const el = document.getElementById(id);
+  el.classList.toggle('hidden');
+  const toggleEl = document.getElementById(id.replace('Body', 'Toggle'));
+  if (toggleEl) toggleEl.classList.toggle('collapsed', el.classList.contains('hidden'));
+}
+function collapseIntanglesSection(id) {
+  document.getElementById(id).classList.add('hidden');
+  const t = document.getElementById(id.replace('Body', 'Toggle'));
+  if (t) t.classList.add('collapsed');
+}
+function expandIntanglesSection(id) {
+  document.getElementById(id).classList.remove('hidden');
+  const t = document.getElementById(id.replace('Body', 'Toggle'));
+  if (t) t.classList.remove('collapsed');
+}
+
+function iStatusBadge(status) {
+  const s = (status || '').toLowerCase();
+  const map = { moving: 'i-badge-green', running: 'i-badge-green', stopped: 'i-badge-red', idling: 'i-badge-amber', idle: 'i-badge-amber', parked: 'i-badge-gray', no_gps: 'i-badge-slate', nogps: 'i-badge-slate', offline: 'i-badge-slate', disconnected: 'i-badge-slate' };
+  return '<span class="i-badge ' + (map[s] || 'i-badge-gray') + '">' + (status || 'Unknown') + '</span>';
+}
+
+function iHealthBadge(health) {
+  if (!health) return '<span class="i-badge i-badge-gray">N/A</span>';
+  const s = (typeof health === 'string' ? health : health.status || health.label || '').toLowerCase();
+  const map = { good: 'i-badge-green', minor: 'i-badge-amber', major: 'i-badge-red', critical: 'i-badge-red' };
+  return '<span class="i-badge ' + (map[s] || 'i-badge-gray') + '">' + s.charAt(0).toUpperCase() + s.slice(1) + '</span>';
+}
+
+function timeAgo(ts) {
+  if (!ts) return '-';
+  const d = typeof ts === 'number' ? (ts > 1e12 ? new Date(ts) : new Date(ts * 1000)) : new Date(ts);
+  const diff = (Date.now() - d.getTime()) / 1000;
+  if (diff < 60) return 'Just now';
+  if (diff < 3600) return Math.floor(diff / 60) + ' min ago';
+  if (diff < 86400) return Math.floor(diff / 3600) + ' hr ago';
+  return Math.floor(diff / 86400) + ' d ago';
+}
+
+function fmtDate(ts) {
+  if (!ts) return '-';
+  const d = typeof ts === 'number' ? (ts > 1e12 ? new Date(ts) : new Date(ts * 1000)) : new Date(ts);
+  return d.toLocaleString('en-IN', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
+}
+
+function syntaxHighlight(json) {
+  if (typeof json !== 'string') json = JSON.stringify(json, null, 2);
+  return json.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    .replace(/"(\\u[\da-fA-F]{4}|\\[^u]|[^\\"])*"(\s*:)?/g, function(match) {
+      let cls = 'json-str';
+      if (match.endsWith(':')) cls = 'json-key';
+      return '<span class="' + cls + '">' + match + '</span>';
+    })
+    .replace(/\b(true|false)\b/g, '<span class="json-bool">$1</span>')
+    .replace(/\bnull\b/g, '<span class="json-null">null</span>')
+    .replace(/\b(-?\d+\.?\d*([eE][+-]?\d+)?)\b/g, '<span class="json-num">$1</span>');
+}
+
+function showILoading(id) { document.getElementById(id).innerHTML = '<div class="i-loading"><div class="i-spinner"></div></div>'; }
+function showIError(id, msg) { document.getElementById(id).innerHTML = '<div class="i-error-msg">' + msg + '</div>'; }
+
+// ===== INTANGLES DATA LOADERS =====
+async function loadIntanglesFleetSummary() {
+  showILoading('intanglesFleetContent');
+  try {
+    const data = await intanglesApi('/vehicle/getstatescount?lastloc=true&__read_from_secondary=true&connection_states=true&groups=&accounts_with_access=' + INTANGLES.ACCOUNT_ID + '&lang=en');
+    const st = data.states || {};
+    const conn = data.connection_status || {};
+    const moving = st.moving || 0, stopped = st.stopped || 0, idling = st.idling || 0, parked = st.parked || 0;
+    const total = (conn.connected || 0) + (conn.disconnected || 0) + (conn.no_external_power || 0);
+    const offline = (conn.disconnected || 0) + (conn.no_external_power || 0);
+
+    STATE.fleetSummary = { total, moving, stopped, idling, parked, offline };
+
+    document.getElementById('intanglesFleetContent').innerHTML =
+      '<div class="intangles-stat-grid">' +
+      '<div class="i-stat-card total"><div class="num">' + total + '</div><div class="label">Total</div></div>' +
+      '<div class="i-stat-card moving"><div class="num">' + moving + '</div><div class="label">Moving</div></div>' +
+      '<div class="i-stat-card stopped"><div class="num">' + stopped + '</div><div class="label">Stopped</div></div>' +
+      '<div class="i-stat-card idling"><div class="num">' + idling + '</div><div class="label">Idling</div></div>' +
+      '<div class="i-stat-card parked"><div class="num">' + parked + '</div><div class="label">Parked</div></div>' +
+      '<div class="i-stat-card offline"><div class="num">' + offline + '</div><div class="label">Disconnected</div></div>' +
+      '</div>';
+    document.getElementById('fleetLiveIndicator').style.display = 'inline-flex';
+  } catch (e) {
+    showIError('intanglesFleetContent', 'Failed to load: ' + e.message);
+  }
+}
+
+async function loadIntanglesVehicles() {
+  showILoading('intanglesVehicleContent');
+  const psize = document.getElementById('intanglesVehiclePageSize').value;
+  try {
+    const data = await intanglesApi('/vehicle/getlist?pnum=' + STATE.vehiclePage + '&psize=' + psize + '&lastloc=true&proj=auxiliary_devices&algos_only=true&get_account_names=true&acc_id=' + INTANGLES.ACCOUNT_ID + '&lang=en');
+    const vehicles = data.v || data.data || (Array.isArray(data) ? data : []);
+    const total = (data.paging && data.paging.total) || vehicles.length;
+    STATE.vehicleData = vehicles;
+
+    let html = '<div style="overflow-x:auto"><table><thead><tr><th>#</th><th>Vehicle</th><th>Status</th><th>Health</th><th>Speed</th><th>Location</th><th>Last Update</th></tr></thead><tbody id="intanglesVehicleTableBody">';
+    vehicles.forEach(function(v, i) {
+      const reg = v.plate || v.tag || v.reg_num || '-';
+      const state = v.status || v.connection_state || '-';
+      const loc = v.location || v.lastloc || {};
+      const speed = (loc.speed != null && loc.speed > 0) ? loc.speed + ' km/h' : '0';
+      const addr = loc.address || (loc.lat ? Number(loc.lat).toFixed(4) + ', ' + Number(loc.lng).toFixed(4) : '-');
+      const updated = v.timestamp || v.last_msg_t || (loc && loc.timestamp) || '';
+      const healthVal = v.health;
+      const healthLabel = typeof healthVal === 'number' ? (healthVal <= 1 ? 'Good' : healthVal <= 3 ? 'Minor' : healthVal <= 5 ? 'Major' : 'Critical') : healthVal;
+      const idx = (STATE.vehiclePage - 1) * psize + i + 1;
+      html += '<tr><td>' + idx + '</td><td><strong>' + reg + '</strong></td><td>' + iStatusBadge(state) + '</td><td>' + iHealthBadge(healthLabel) + '</td><td>' + speed + '</td><td style="max-width:200px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" title="' + addr + '">' + addr + '</td><td>' + timeAgo(updated) + '</td></tr>';
+    });
+    html += '</tbody></table></div>';
+
+    const totalPages = Math.ceil(total / psize) || 1;
+    html += '<div class="i-pagination"><span>Showing ' + ((STATE.vehiclePage-1)*psize+1) + '-' + Math.min(STATE.vehiclePage*psize, total) + ' of ' + total + '</span><div>' +
+      '<button class="i-btn i-btn-sm i-btn-outline" ' + (STATE.vehiclePage <= 1 ? 'disabled' : '') + ' onclick="STATE.vehiclePage--;loadIntanglesVehicles()">Previous</button>' +
+      '<span style="margin:0 8px;">Page ' + STATE.vehiclePage + ' of ' + totalPages + '</span>' +
+      '<button class="i-btn i-btn-sm i-btn-outline" ' + (STATE.vehiclePage >= totalPages ? 'disabled' : '') + ' onclick="STATE.vehiclePage++;loadIntanglesVehicles()">Next</button>' +
+      '</div></div>';
+    document.getElementById('intanglesVehicleContent').innerHTML = html;
+  } catch (e) {
+    showIError('intanglesVehicleContent', 'Failed to load vehicles: ' + e.message);
+  }
+}
+
+function filterIntanglesVehicles() {
+  const q = document.getElementById('intanglesVehicleSearch').value.toLowerCase();
+  const rows = document.querySelectorAll('#intanglesVehicleTableBody tr');
+  rows.forEach(function(row) { row.style.display = row.textContent.toLowerCase().includes(q) ? '' : 'none'; });
+}
+
+async function loadIntanglesGeofences() {
+  showILoading('intanglesGeofenceContent');
+  try {
+    const data = await intanglesApi('/geofence/listV2?psize=50&pnum=' + STATE.geofencePage + '&query=*&acc_id=' + INTANGLES.ACCOUNT_ID + '&lang=en');
+    const geofences = data.gf || data.data || (Array.isArray(data) ? data : []);
+    let html = '<div style="overflow-x:auto"><table><thead><tr><th>#</th><th>Name</th><th>Hub</th><th>Center</th></tr></thead><tbody>';
+    geofences.forEach(function(g, i) {
+      const name = g.tag || g.name || '-';
+      const isHub = g.is_hub ? '<span class="i-badge i-badge-green">Hub</span>' : '<span class="i-badge i-badge-gray">No</span>';
+      const center = g.fence_center ? Number(g.fence_center.lat || 0).toFixed(4) + ', ' + Number(g.fence_center.lng || 0).toFixed(4) : '-';
+      html += '<tr><td>' + ((STATE.geofencePage-1)*50+i+1) + '</td><td><strong>' + name + '</strong></td><td>' + isHub + '</td><td>' + center + '</td></tr>';
+    });
+    html += '</tbody></table></div>';
+    document.getElementById('intanglesGeofenceContent').innerHTML = html || '<div class="i-info-msg">No geofences found.</div>';
+  } catch (e) {
+    showIError('intanglesGeofenceContent', 'Failed to load geofences: ' + e.message);
+  }
+}
+
+async function loadIntanglesAlerts() {
+  showILoading('intanglesAlertContent');
+  const hours = parseInt(document.getElementById('intanglesAlertRange').value);
+  const endTs = Date.now();
+  const startTs = endTs - (hours * 3600 * 1000);
+  const alertType = document.getElementById('intanglesAlertType').value;
+  const typeParam = alertType ? '&types=' + alertType : '';
+  try {
+    const data = await intanglesApi('/alertlog/logsV2/' + startTs + '/' + endTs + '?psize=20&pnum=' + STATE.alertPage + typeParam + '&sort=timestamp%20desc&no_total=true&acc_id=' + INTANGLES.ACCOUNT_ID + '&lang=en');
+    const alerts = data.logs || data.data || (Array.isArray(data) ? data : []);
+    if (alerts.length === 0) {
+      document.getElementById('intanglesAlertContent').innerHTML = '<div class="i-info-msg">No alerts found for the selected period.</div>';
+      return;
+    }
+    let html = '<div style="overflow-x:auto"><table><thead><tr><th>#</th><th>Time</th><th>Vehicle</th><th>Type</th><th>Details</th></tr></thead><tbody>';
+    alerts.forEach(function(a, i) {
+      const time = fmtDate(a.timestamp);
+      const vehicle = a.vehicle_plate || a.vehicle_tag || '-';
+      const type = a.type || '-';
+      const gfName = a.geofence_tag ? 'Geofence: ' + a.geofence_tag : '';
+      const detail = gfName || a.address || a.message || a.description || '-';
+      const typeCls = type === 'geofence' ? 'i-badge-blue' : type === 'over_speed' ? 'i-badge-red' : 'i-badge-gray';
+      html += '<tr><td>' + ((STATE.alertPage-1)*20+i+1) + '</td><td style="white-space:nowrap;">' + time + '</td><td><strong>' + vehicle + '</strong></td><td><span class="i-badge ' + typeCls + '">' + type + '</span></td><td style="max-width:300px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + detail + '</td></tr>';
+    });
+    html += '</tbody></table></div>';
+    if (alerts.length >= 20) {
+      html += '<div class="i-pagination"><span>Page ' + STATE.alertPage + '</span><div>' +
+        '<button class="i-btn i-btn-sm i-btn-outline" ' + (STATE.alertPage<=1?'disabled':'') + ' onclick="STATE.alertPage--;loadIntanglesAlerts()">Previous</button>' +
+        '<button class="i-btn i-btn-sm i-btn-outline" onclick="STATE.alertPage++;loadIntanglesAlerts()" style="margin-left:8px">Next</button></div></div>';
+    }
+    document.getElementById('intanglesAlertContent').innerHTML = html;
+  } catch (e) {
+    showIError('intanglesAlertContent', 'Failed to load alerts: ' + e.message);
+  }
+}
+
+async function loadIntanglesAccount() {
+  showILoading('intanglesAccountContent');
+  try {
+    const data = await intanglesApi('/accountV2/' + INTANGLES.ACCOUNT_ID + '?lang=en');
+    const acc = data.result || data.data || data;
+    const fields = [
+      ['Account Name', acc.display_name || acc.name || '-'],
+      ['Account ID', acc.id || acc._id || INTANGLES.ACCOUNT_ID],
+      ['Stage', acc.stage || '-'],
+      ['Type', acc.type || '-'],
+      ['Region', acc.region || '-'],
+      ['Fleet Size', acc.fleet_size || '-'],
+    ];
+    let html = '<div class="i-info-grid">';
+    fields.forEach(function(f) { html += '<div class="i-info-item"><label>' + f[0] + '</label><div class="val">' + f[1] + '</div></div>'; });
+    html += '</div>';
+    document.getElementById('intanglesAccountContent').innerHTML = html;
+  } catch (e) {
+    showIError('intanglesAccountContent', 'Failed to load account: ' + e.message);
+  }
+}
+
+async function fetchExplorer() {
+  const custom = document.getElementById('intanglesCustomEndpoint').value.trim();
+  const selected = document.getElementById('intanglesExplorerEndpoint').value;
+  let path = custom || selected;
+  path = resolvePath(path);
+  document.getElementById('intanglesExplorerContent').innerHTML = 'Fetching...';
+  try {
+    const data = await intanglesApi(path);
+    document.getElementById('intanglesExplorerContent').innerHTML = syntaxHighlight(data);
+  } catch (e) {
+    document.getElementById('intanglesExplorerContent').innerHTML = '<span style="color:var(--red);">Error: ' + e.message + '</span>';
+  }
+}
+
+async function loadAllIntangles() {
+  document.getElementById('intanglesLastUpdated').textContent = 'Refreshing...';
+  await Promise.allSettled([
+    loadIntanglesFleetSummary(),
+    loadIntanglesVehicles(),
+    loadIntanglesGeofences(),
+    loadIntanglesAlerts(),
+    loadIntanglesAccount(),
+  ]);
+  document.getElementById('intanglesLastUpdated').textContent = 'Updated: ' + new Date().toLocaleTimeString();
+  // Also update other views
+  updateOpsWithLiveData();
+  updateExecWithLiveData();
+}
+
+// ===== BRIDGE FUNCTIONS: Live data into FMS views =====
+function updateOpsWithLiveData() {
+  if (!STATE.fleetSummary) return;
+  const fs = STATE.fleetSummary;
+  document.getElementById('ops-total-val').textContent = fs.total;
+  document.getElementById('ops-total-change').innerHTML = '<span class="live-indicator"><span class="live-dot"></span> Live from Intangles</span>';
+  document.getElementById('ops-idle-val').textContent = fs.idling + fs.parked;
+  document.getElementById('ops-idle-change').textContent = fs.idling + ' idling, ' + fs.parked + ' parked';
+}
+
+function updateExecWithLiveData() {
+  if (!STATE.fleetSummary) return;
+  const fs = STATE.fleetSummary;
+  const total = fs.total || 1;
+  const movingDeg = (fs.moving / total) * 360;
+  const stoppedDeg = movingDeg + (fs.stopped / total) * 360;
+  const idlingDeg = stoppedDeg + (fs.idling / total) * 360;
+
+  const donutEl = document.getElementById('exec-donut-data');
+  donutEl.innerHTML =
+    '<div class="donut-chart" style="background:conic-gradient(var(--green) 0deg ' + movingDeg + 'deg, var(--red) ' + movingDeg + 'deg ' + stoppedDeg + 'deg, var(--amber) ' + stoppedDeg + 'deg ' + idlingDeg + 'deg, var(--gray-300) ' + idlingDeg + 'deg 360deg)">' +
+    '<div class="donut-center"><div class="big">' + fs.total + '</div><div class="small">Total Fleet</div></div></div>' +
+    '<div class="donut-legend">' +
+    '<div class="donut-legend-item"><div class="donut-legend-dot" style="background:var(--green)"></div>Moving (' + fs.moving + ')</div>' +
+    '<div class="donut-legend-item"><div class="donut-legend-dot" style="background:var(--red)"></div>Stopped (' + fs.stopped + ')</div>' +
+    '<div class="donut-legend-item"><div class="donut-legend-dot" style="background:var(--amber)"></div>Idling (' + fs.idling + ')</div>' +
+    '<div class="donut-legend-item"><div class="donut-legend-dot" style="background:var(--gray-300)"></div>Parked/Offline (' + (fs.parked + fs.offline) + ')</div>' +
+    '</div>';
+  document.getElementById('execLiveIndicator').style.display = 'inline-flex';
+}
+
+// ===== AUTO-REFRESH =====
+function setupAutoRefresh() {
+  const cb = document.getElementById('autoRefresh');
+  const sel = document.getElementById('refreshInterval');
+  cb.addEventListener('change', function() {
+    if (STATE.refreshTimer) clearInterval(STATE.refreshTimer);
+    if (cb.checked) STATE.refreshTimer = setInterval(loadAllIntangles, parseInt(sel.value) * 1000);
+  });
+  sel.addEventListener('change', function() {
+    if (cb.checked) {
+      clearInterval(STATE.refreshTimer);
+      STATE.refreshTimer = setInterval(loadAllIntangles, parseInt(sel.value) * 1000);
+    }
+  });
+}
+
+// ===== VIEW NAVIGATION =====
+function switchView(view, navEl) {
+  document.querySelectorAll('.view').forEach(function(v) { v.classList.remove('active'); });
+  document.querySelectorAll('[id^="topbar-"]').forEach(function(t) { t.style.display = 'none'; });
+  document.getElementById('view-' + view).classList.add('active');
+  const topbar = document.getElementById('topbar-' + view);
+  if (topbar) topbar.style.display = 'flex';
+  document.querySelectorAll('.nav-item').forEach(function(n) { n.classList.remove('active'); });
+  if (navEl) navEl.classList.add('active');
+  STATE.currentView = view;
+
+  // Load static view content on first visit
+  if (!STATE.viewsLoaded[view] && VIEW_TEMPLATES[view]) {
+    document.getElementById('view-' + view).innerHTML = VIEW_TEMPLATES[view];
+    STATE.viewsLoaded[view] = true;
+  }
+
+  // Trigger live data on relevant views
+  if (STATE.connected) {
+    if (view === 'intangles' && !STATE.viewsLoaded._intanglesDataLoaded) {
+      loadAllIntangles();
+      STATE.viewsLoaded._intanglesDataLoaded = true;
+    }
+    if (view === 'ops') updateOpsWithLiveData();
+    if (view === 'business') updateExecWithLiveData();
+  }
+}
+
+// ===== LAZY-LOADED VIEW TEMPLATES =====
+// These large static views are loaded on first navigation to keep initial render fast
+const VIEW_TEMPLATES = {};
+
+VIEW_TEMPLATES.driver = `
+<div class="view-intro"><h2>Driver Mobile Application</h2><p>GPS-enabled trip management with geo-fence automation and offline support</p></div>
+<div class="mobile-view">
+  <div>
+    <div class="phone-frame"><div class="phone-screen">
+      <div class="phone-status-bar"><span>9:41</span><span>A2T Fleet</span><span>100%</span></div>
+      <div class="phone-header"><h2>My Trips</h2><p>3 trips assigned today</p></div>
+      <div class="phone-body">
+        <div class="phone-label">Active Trip</div>
+        <div class="m-trip-card" style="border-left:4px solid var(--green)">
+          <div class="m-trip-header"><span class="m-trip-vehicle">TN 03 AJ 9743</span><span class="m-trip-type" style="background:#dcfce7;color:#15803d">In Progress</span></div>
+          <div class="m-trip-route">TNPM &rarr; Kattupalli &rarr; TNPM</div>
+          <div class="m-trip-time">Import &bull; Started 11:34 AM</div>
+          <button class="m-trip-btn m-trip-btn-primary">View Trip Details</button>
+        </div>
+        <div class="phone-label">Upcoming</div>
+        <div class="m-trip-card"><div class="m-trip-header"><span class="m-trip-vehicle">TN 03 AJ 9743</span><span class="m-trip-type" style="background:#dbeafe;color:#1e40af">Assigned</span></div><div class="m-trip-route">TNPM &rarr; CITPL CFS &rarr; Factory</div><div class="m-trip-time">Export &bull; Scheduled 16:00</div><button class="m-trip-btn m-trip-btn-outline">Confirm Trip</button></div>
+        <div class="m-trip-card"><div class="m-trip-header"><span class="m-trip-vehicle">TN 03 AJ 9743</span><span class="m-trip-type" style="background:#f3f4f6;color:#6b7280">Tomorrow</span></div><div class="m-trip-route">CFS &rarr; CONCOR Yard</div><div class="m-trip-time">Import &bull; 17 Feb, 07:00 AM</div></div>
+      </div>
+      <div class="phone-nav"><div class="phone-nav-item active"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></svg>Trips</div><div class="phone-nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>Map</div><div class="phone-nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6"/></svg>Docs</div><div class="phone-nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/></svg>More</div></div>
+    </div></div>
+    <div class="screen-label">Trip List</div><div class="screen-sublabel">View & manage assigned trips</div>
+  </div>
+  <div>
+    <div class="phone-frame"><div class="phone-screen">
+      <div class="phone-status-bar"><span>14:22</span><span>GPS Active</span><span>87%</span></div>
+      <div class="phone-header" style="padding-bottom:12px"><div style="display:flex;justify-content:space-between;align-items:center"><h2 style="font-size:16px">Trip #A2T-2024-1847</h2><span style="background:rgba(255,255,255,0.2);padding:3px 10px;border-radius:12px;font-size:10px;font-weight:600">LIVE</span></div><p>TN 03 AJ 9743 &bull; TNPM &rarr; Kattupalli &rarr; TNPM</p></div>
+      <div class="phone-body">
+        <div style="padding:12px 0 0"></div>
+        <div class="geofence-prompt"><h4>Geo-Fence Detected</h4><p>You appear to have completed loading at Kattupalli. Confirm?</p><div class="geofence-btns"><button class="geofence-yes">Yes, Loaded</button><button class="geofence-no">Not Yet</button></div></div>
+        <div class="phone-label">Trip Timeline</div>
+        <div class="m-status-step" style="border-radius:10px 10px 0 0"><div class="m-status-icon done">&#10003;</div><span class="m-status-text done">TNPM Gate Out</span><span class="m-status-time">11:34</span></div>
+        <div class="m-status-step"><div class="m-status-icon done">&#10003;</div><span class="m-status-text done">Kattupalli Gate In</span><span class="m-status-time">12:35</span></div>
+        <div class="m-status-step"><div class="m-status-icon done">&#10003;</div><span class="m-status-text done">EIR Received</span><span class="m-status-time">13:03</span></div>
+        <div class="m-status-step"><div class="m-status-icon active">&#9679;</div><span class="m-status-text active">Loading</span><span class="m-status-time">14:20</span></div>
+        <div class="m-status-step"><div class="m-status-icon pending">&bull;</div><span class="m-status-text pending">Kattupalli Gate Out</span><span class="m-status-time">--:--</span></div>
+        <div class="m-status-step"><div class="m-status-icon pending">&bull;</div><span class="m-status-text pending">TNPM Gate In</span><span class="m-status-time">--:--</span></div>
+        <div class="m-status-step" style="border-radius:0 0 10px 10px;margin-bottom:12px"><div class="m-status-icon pending">&bull;</div><span class="m-status-text pending">Unloading</span><span class="m-status-time">--:--</span></div>
+        <div style="padding:0 12px 12px"><button class="m-trip-btn m-trip-btn-success" style="width:100%">Upload Document</button></div>
+      </div>
+      <div class="phone-nav"><div class="phone-nav-item active"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></svg>Trips</div><div class="phone-nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>Map</div><div class="phone-nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6"/></svg>Docs</div><div class="phone-nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/></svg>More</div></div>
+    </div></div>
+    <div class="screen-label">Active Trip + Geo-Fence</div><div class="screen-sublabel">Real-time status & auto-detection</div>
+  </div>
+</div>`;
+
+VIEW_TEMPLATES.mechanic = `
+<div class="view-intro"><h2>Mechanic Mobile Application</h2><p>Service request management, maintenance logging, and vehicle inspection</p></div>
+<div class="mobile-view">
+  <div>
+    <div class="phone-frame"><div class="phone-screen">
+      <div class="phone-status-bar"><span>10:15</span><span>A2T Mechanic</span><span>91%</span></div>
+      <div class="phone-header" style="background:#15803d"><h2>Service Requests</h2><p>4 pending &bull; 2 completed today</p></div>
+      <div class="phone-body">
+        <div class="phone-label">Urgent</div>
+        <div class="service-card urgent"><div class="service-header"><span class="service-vehicle">TN 11 EF 5678</span><span class="service-priority priority-urgent">URGENT</span></div><div class="service-desc">Vehicle breakdown - Engine overheating near Hosur</div><div class="service-meta"><span>Driver: Murugan</span><span>12 km away</span></div><button class="m-trip-btn" style="background:var(--red);color:#fff;margin-top:8px">Accept & Navigate</button></div>
+        <div class="phone-label">Scheduled</div>
+        <div class="service-card scheduled"><div class="service-header"><span class="service-vehicle">TN 03 AJ 9753</span><span class="service-priority priority-scheduled">SCHEDULED</span></div><div class="service-desc">Brake pad replacement - Front axle</div><div class="service-meta"><span>Tomorrow 09:00</span><span>CONCOR Yard</span></div></div>
+        <div class="phone-label">Preventive</div>
+        <div class="service-card preventive"><div class="service-header"><span class="service-vehicle">TN 09 CD 1234</span><span class="service-priority priority-preventive">PREVENTIVE</span></div><div class="service-desc">10,000 km service - Oil change, filter replacement</div><div class="service-meta"><span>Due in 3 days</span><span>Odometer: 9,847 km</span></div></div>
+      </div>
+      <div class="phone-nav"><div class="phone-nav-item active" style="color:#15803d"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/></svg>Requests</div><div class="phone-nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>History</div><div class="phone-nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>Inspect</div><div class="phone-nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/></svg>Profile</div></div>
+    </div></div>
+    <div class="screen-label">Service Requests</div><div class="screen-sublabel">Prioritized maintenance queue</div>
+  </div>
+  <div>
+    <div class="phone-frame"><div class="phone-screen">
+      <div class="phone-status-bar"><span>14:45</span><span>Service Active</span><span>85%</span></div>
+      <div class="phone-header" style="background:#15803d;padding-bottom:12px"><div style="display:flex;justify-content:space-between;align-items:center"><h2 style="font-size:16px">Active Service</h2><span style="background:rgba(255,255,255,0.2);padding:3px 10px;border-radius:12px;font-size:10px;font-weight:600">01:23:45</span></div><p>TN 11 EF 5678 &bull; Engine Repair</p></div>
+      <div class="phone-body">
+        <div class="phone-label">Service Details</div>
+        <div class="m-trip-card"><div style="font-size:12px;color:var(--gray-500);margin-bottom:4px">Issue</div><div style="font-size:13px;font-weight:500;margin-bottom:10px">Engine overheating - Coolant leak detected</div><div style="font-size:12px;color:var(--gray-500);margin-bottom:4px">Location</div><div style="font-size:13px;font-weight:500;margin-bottom:10px">NH44 near Hosur toll plaza</div><div style="font-size:12px;color:var(--gray-500);margin-bottom:4px">Started</div><div style="font-size:13px;font-weight:500">13:22 &bull; Duration: 1h 23m</div></div>
+        <div class="parts-log"><h4>Parts Used</h4><div class="part-item"><span class="part-name">Coolant Hose (Upper)</span><span class="part-qty">Qty: 1</span></div><div class="part-item"><span class="part-name">Radiator Cap</span><span class="part-qty">Qty: 1</span></div><div class="part-item"><span class="part-name">Coolant Fluid (1L)</span><span class="part-qty">Qty: 2</span></div></div>
+        <div style="padding:0 12px 12px;display:flex;gap:8px"><button class="m-trip-btn m-trip-btn-success" style="flex:1">Complete Service</button></div>
+      </div>
+      <div class="phone-nav"><div class="phone-nav-item active" style="color:#15803d"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/></svg>Requests</div><div class="phone-nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>History</div><div class="phone-nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>Inspect</div><div class="phone-nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/></svg>Profile</div></div>
+    </div></div>
+    <div class="screen-label">Active Service</div><div class="screen-sublabel">Logging work & parts used</div>
+  </div>
+</div>`;
+
+VIEW_TEMPLATES.fleet = `
+<div class="stats-grid">
+  <div class="stat-card"><div class="stat-icon" style="background:#dbeafe"><svg viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2"><rect x="1" y="3" width="15" height="13" rx="2"/><path d="M16 8h4l3 3v5h-7V8z"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg></div><div class="stat-value" id="fleet-total-val">24</div><div class="stat-label">Total Vehicles</div><div class="stat-change up">+2 this month</div></div>
+  <div class="stat-card"><div class="stat-icon" style="background:#dcfce7"><svg viewBox="0 0 24 24" fill="none" stroke="#15803d" stroke-width="2"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><path d="M22 4L12 14.01l-3-3"/></svg></div><div class="stat-value" style="color:var(--green)" id="fleet-active-val">15</div><div class="stat-label">Active Vehicles</div><div class="stat-change up">63% of fleet</div></div>
+  <div class="stat-card"><div class="stat-icon" style="background:#fce4ec"><svg viewBox="0 0 24 24" fill="none" stroke="#dc2626" stroke-width="2"><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/></svg></div><div class="stat-value" style="color:var(--red)">2</div><div class="stat-label">Under Maintenance</div><div class="stat-change">1 urgent, 1 scheduled</div></div>
+  <div class="stat-card"><div class="stat-icon" style="background:#dbeafe"><svg viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div><div class="stat-value" style="color:var(--blue)">21/24</div><div class="stat-label">Compliance OK</div><div class="stat-change down">3 need attention</div></div>
+</div>
+<div class="card mb-24">
+  <div class="card-header"><h3>Vehicle Registry <span class="live-indicator" id="fleetRegistryLive" style="display:none"><span class="live-dot"></span> LIVE</span></h3><span style="font-size:11px;color:var(--gray-400)" id="fleet-registry-count">24 vehicles registered</span></div>
+  <div class="card-body" style="padding:0;overflow-x:auto">
+    <table class="compliance-table"><thead><tr><th>Vehicle No</th><th>Type</th><th>Status</th><th>Driver</th><th>Insurance</th><th>PUC</th><th>Fitness</th><th>Trips MTD</th><th>KM Driven</th><th>Fuel Eff.</th></tr></thead>
+    <tbody id="fleet-vehicle-tbody">
+      <tr><td><strong>TN 03 AJ 9743</strong></td><td>20ft Trailer</td><td><span class="status-pill status-active">Active</span></td><td>Selvakumar</td><td><span class="status-pill status-valid">Valid</span></td><td><span class="status-pill status-expiring">15 days</span></td><td><span class="status-pill status-valid">Valid</span></td><td><strong>42</strong></td><td>3,240 km</td><td>4.3 km/l</td></tr>
+      <tr><td><strong>TN 03 AJ 9753</strong></td><td>40ft Trailer</td><td><span class="status-pill status-active">Active</span></td><td>Rajesh</td><td><span class="status-pill status-valid">Valid</span></td><td><span class="status-pill status-valid">Valid</span></td><td><span class="status-pill status-valid">Valid</span></td><td><strong>38</strong></td><td>2,980 km</td><td>4.1 km/l</td></tr>
+      <tr><td><strong>TN 07 BK 4521</strong></td><td>20ft Trailer</td><td><span class="status-pill status-idle">Idle</span></td><td>Kumar</td><td><span class="status-pill status-valid">Valid</span></td><td><span class="status-pill status-valid">Valid</span></td><td><span class="status-pill status-expired">Expired</span></td><td><strong>28</strong></td><td>2,150 km</td><td>4.5 km/l</td></tr>
+      <tr><td><strong>TN 09 CD 1234</strong></td><td>40ft Trailer</td><td><span class="status-pill status-active">Active</span></td><td>Ganesh</td><td><span class="status-pill status-valid">Valid</span></td><td><span class="status-pill status-valid">Valid</span></td><td><span class="status-pill status-valid">Valid</span></td><td><strong>45</strong></td><td>3,510 km</td><td>4.0 km/l</td></tr>
+      <tr><td><strong>TN 11 EF 5678</strong></td><td>20ft Trailer</td><td><span class="status-pill status-maintenance">Maintenance</span></td><td>Murugan</td><td><span class="status-pill status-expiring">7 days</span></td><td><span class="status-pill status-valid">Valid</span></td><td><span class="status-pill status-valid">Valid</span></td><td><strong>31</strong></td><td>2,870 km</td><td>3.8 km/l</td></tr>
+      <tr><td><strong>TN 14 GH 2345</strong></td><td>40ft Trailer</td><td><span class="status-pill status-active">Active</span></td><td>Venkatesh</td><td><span class="status-pill status-valid">Valid</span></td><td><span class="status-pill status-valid">Valid</span></td><td><span class="status-pill status-valid">Valid</span></td><td><strong>39</strong></td><td>3,100 km</td><td>4.2 km/l</td></tr>
+      <tr><td><strong>TN 05 JK 6789</strong></td><td>20ft Trailer</td><td><span class="status-pill status-parked">Parked</span></td><td>Unassigned</td><td><span class="status-pill status-valid">Valid</span></td><td><span class="status-pill status-valid">Valid</span></td><td><span class="status-pill status-valid">Valid</span></td><td>0</td><td>0 km</td><td>--</td></tr>
+      <tr><td><strong>TN 18 LM 3456</strong></td><td>40ft Trailer</td><td><span class="status-pill status-active">Active</span></td><td>Suresh</td><td><span class="status-pill status-valid">Valid</span></td><td><span class="status-pill status-expiring">22 days</span></td><td><span class="status-pill status-valid">Valid</span></td><td><strong>36</strong></td><td>2,760 km</td><td>4.4 km/l</td></tr>
+    </tbody></table>
+  </div>
+</div>`;
+
+VIEW_TEMPLATES.documents = '<div class="stats-grid"><div class="stat-card"><div class="stat-icon" style="background:#dbeafe"><svg viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6"/></svg></div><div class="stat-value">342</div><div class="stat-label">Total Documents</div><div class="stat-change up">+28 this week</div></div><div class="stat-card"><div class="stat-icon" style="background:#fef3c7"><svg viewBox="0 0 24 24" fill="none" stroke="#d97706" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg></div><div class="stat-value" style="color:var(--orange)">12</div><div class="stat-label">Pending Verification</div><div class="stat-change down">Oldest: 2 days</div></div><div class="stat-card"><div class="stat-icon" style="background:#dcfce7"><svg viewBox="0 0 24 24" fill="none" stroke="#15803d" stroke-width="2"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><path d="M22 4L12 14.01l-3-3"/></svg></div><div class="stat-value" style="color:var(--green)">87</div><div class="stat-label">Verified This Month</div><div class="stat-change up">+12% vs last month</div></div><div class="stat-card"><div class="stat-icon" style="background:#fce4ec"><svg viewBox="0 0 24 24" fill="none" stroke="#dc2626" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg></div><div class="stat-value" style="color:var(--red)">5</div><div class="stat-label">Missing / Overdue</div><div class="stat-change down">Needs follow-up</div></div></div><div class="card"><div class="card-header"><h3>Pending Verification Queue</h3><span style="font-size:11px;color:var(--gray-400)">12 documents awaiting review</span></div><div class="card-body" style="padding:0;overflow-x:auto"><table class="compliance-table"><thead><tr><th>Document</th><th>Type</th><th>Category</th><th>Vehicle / Driver</th><th>Upload Date</th><th>Actions</th></tr></thead><tbody><tr><td><strong>EIR-2024-1847</strong></td><td>EIR</td><td><span class="doc-category-tag tag-trip">Trip</span></td><td>TN 03 AJ 9743</td><td>16 Feb</td><td><button class="doc-action-btn doc-approve">Approve</button> <button class="doc-action-btn doc-reject">Reject</button></td></tr><tr><td><strong>EWBILL-38291</strong></td><td>e-Way Bill</td><td><span class="doc-category-tag tag-trip">Trip</span></td><td>TN 03 AJ 9753</td><td>16 Feb</td><td><button class="doc-action-btn doc-approve">Approve</button> <button class="doc-action-btn doc-reject">Reject</button></td></tr><tr><td><strong>INS-REN-9743</strong></td><td>Insurance</td><td><span class="doc-category-tag tag-vehicle">Vehicle</span></td><td>TN 03 AJ 9743</td><td>15 Feb</td><td><button class="doc-action-btn doc-approve">Approve</button> <button class="doc-action-btn doc-reject">Reject</button></td></tr></tbody></table></div></div>';
+
+VIEW_TEMPLATES.compliance = '<div class="stats-grid"><div class="stat-card"><div class="stat-icon" style="background:#dcfce7"><svg viewBox="0 0 24 24" fill="none" stroke="#15803d" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div><div class="stat-value" style="color:var(--green)">92%</div><div class="stat-label">Overall Compliance Rate</div><div class="stat-change up">+3% vs last month</div></div><div class="stat-card"><div class="stat-icon" style="background:#fce4ec"><svg viewBox="0 0 24 24" fill="none" stroke="#dc2626" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></div><div class="stat-value" style="color:var(--red)">3</div><div class="stat-label">Expiring in 7 Days</div><div class="stat-change down">Urgent attention needed</div></div><div class="stat-card"><div class="stat-icon" style="background:#fef3c7"><svg viewBox="0 0 24 24" fill="none" stroke="#d97706" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg></div><div class="stat-value" style="color:var(--orange)">5</div><div class="stat-label">Expiring in 30 Days</div><div class="stat-change">Schedule renewals</div></div><div class="stat-card"><div class="stat-icon" style="background:#fce4ec"><svg viewBox="0 0 24 24" fill="none" stroke="#dc2626" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg></div><div class="stat-value" style="color:var(--red)">1</div><div class="stat-label">Vehicles Blocked</div><div class="stat-change down">Auto-blocked (expired docs)</div></div></div><div class="kpi-grid" style="margin-bottom:24px"><div class="kpi-card"><div class="kpi-header"><span class="kpi-title">Insurance Compliance</span><span class="kpi-trend up">&uarr; 4%</span></div><div class="kpi-value" style="color:var(--green)">96%</div><div class="kpi-target">Target: 100%</div><div class="kpi-bar"><div class="kpi-bar-fill" style="width:96%;background:var(--green)"></div></div></div><div class="kpi-card"><div class="kpi-header"><span class="kpi-title">PUC Compliance</span><span class="kpi-trend down">&darr; 2%</span></div><div class="kpi-value" style="color:var(--orange)">88%</div><div class="kpi-target">Target: 100%</div><div class="kpi-bar"><div class="kpi-bar-fill" style="width:88%;background:var(--orange)"></div></div></div><div class="kpi-card"><div class="kpi-header"><span class="kpi-title">Fitness Compliance</span><span class="kpi-trend up">&uarr; 1%</span></div><div class="kpi-value" style="color:var(--blue)">92%</div><div class="kpi-target">Target: 100%</div><div class="kpi-bar"><div class="kpi-bar-fill" style="width:92%;background:var(--blue)"></div></div></div></div>';
+
+VIEW_TEMPLATES.reports = '<div class="report-tabs"><div class="report-tab active">Daily Movement</div><div class="report-tab">Vehicle Utilisation</div><div class="report-tab">Driver Performance</div><div class="report-tab">Turnaround Time</div><div class="report-tab">Exceptions</div><div class="report-tab">Doc Compliance</div></div><div class="stats-grid"><div class="stat-card"><div class="stat-icon" style="background:#dbeafe"><svg viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2"><rect x="1" y="3" width="15" height="13" rx="2"/><path d="M16 8h4l3 3v5h-7V8z"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg></div><div class="stat-value">18</div><div class="stat-label">Total Movements Today</div><div class="stat-change up">+3 vs yesterday</div></div><div class="stat-card"><div class="stat-icon" style="background:#dcfce7"><svg viewBox="0 0 24 24" fill="none" stroke="#15803d" stroke-width="2"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><path d="M22 4L12 14.01l-3-3"/></svg></div><div class="stat-value" style="color:var(--green)">14</div><div class="stat-label">Completed</div><div class="stat-change up">78% completion rate</div></div><div class="stat-card"><div class="stat-icon" style="background:#dbeafe"><svg viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg></div><div class="stat-value" style="color:var(--blue)">3</div><div class="stat-label">In Progress</div><div class="stat-change">Avg ETA: 2.5 hrs</div></div><div class="stat-card"><div class="stat-icon" style="background:#fce4ec"><svg viewBox="0 0 24 24" fill="none" stroke="#dc2626" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></div><div class="stat-value" style="color:var(--red)">1</div><div class="stat-label">Delayed / Exception</div><div class="stat-change down">1 breakdown active</div></div></div><div class="card"><div class="card-header"><h3>Daily Movement Report - 16 Feb 2026</h3></div><div class="card-body" style="padding:0;overflow-x:auto"><table class="compliance-table"><thead><tr><th>Trip ID</th><th>Vehicle</th><th>Route</th><th>Driver</th><th>Type</th><th>Status</th><th>Distance</th></tr></thead><tbody><tr><td><strong>A2T-1847</strong></td><td>TN 03 AJ 9743</td><td>TNPM &rarr; Kattupalli &rarr; TNPM</td><td>Selvakumar</td><td>Import</td><td><span class="status-pill badge-active">In Transit</span></td><td>48 km</td></tr><tr><td><strong>A2T-1846</strong></td><td>TN 03 AJ 9753</td><td>TNPM &rarr; CITPL &rarr; BLR</td><td>Rajesh</td><td>Export</td><td><span class="status-pill badge-active">In Transit</span></td><td>312 km</td></tr><tr><td><strong>A2T-1845</strong></td><td>TN 09 CD 1234</td><td>CITPL CFS &rarr; Factory BLR</td><td>Ganesh</td><td>Import</td><td><span class="status-pill badge-completed">Completed</span></td><td>285 km</td></tr><tr><td><strong>A2T-1844</strong></td><td>TN 14 GH 2345</td><td>CONCOR &rarr; TNPM</td><td>Venkatesh</td><td>Export</td><td><span class="status-pill badge-completed">Completed</span></td><td>42 km</td></tr></tbody></table></div></div>';
+
+VIEW_TEMPLATES.alerts = '<div class="stats-grid"><div class="stat-card"><div class="stat-icon" style="background:#fce4ec"><svg viewBox="0 0 24 24" fill="none" stroke="#dc2626" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></div><div class="stat-value" style="color:var(--red)">7</div><div class="stat-label">Active Alerts</div><div class="stat-change down">+2 since yesterday</div></div><div class="stat-card"><div class="stat-icon" style="background:#fce4ec"><svg viewBox="0 0 24 24" fill="none" stroke="#dc2626" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg></div><div class="stat-value" style="color:var(--red)">2</div><div class="stat-label">Critical / Unresolved</div><div class="stat-change down">Needs immediate action</div></div><div class="stat-card"><div class="stat-icon" style="background:#dbeafe"><svg viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg></div><div class="stat-value" style="color:var(--blue)">23<span style="font-size:16px;color:var(--gray-400)">min</span></div><div class="stat-label">Avg Response Time</div><div class="stat-change up">-5 min vs last week</div></div><div class="stat-card"><div class="stat-icon" style="background:#dcfce7"><svg viewBox="0 0 24 24" fill="none" stroke="#15803d" stroke-width="2"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><path d="M22 4L12 14.01l-3-3"/></svg></div><div class="stat-value" style="color:var(--green)">94%</div><div class="stat-label">Resolution Rate</div><div class="stat-change up">+6% vs last month</div></div></div><div class="card mb-24"><div class="card-header"><h3>Escalation Matrix</h3><span style="font-size:11px;color:var(--gray-400)">3-level response protocol</span></div><div class="card-body"><div class="escalation-grid"><div class="escalation-card level-1"><div class="escalation-level">Level 1 - Initial Response</div><div class="escalation-person">Operations Controller</div><div class="escalation-role">Shift supervisor on duty</div><div class="escalation-triggers"><strong>Triggers:</strong> All new alerts<br><strong>Response:</strong> 0-15 minutes<br><strong>Actions:</strong> Acknowledge, assess, contact driver</div></div><div class="escalation-card level-2"><div class="escalation-level">Level 2 - Escalation</div><div class="escalation-person">Operations Manager</div><div class="escalation-role">George Mello</div><div class="escalation-triggers"><strong>Triggers:</strong> Unresolved >30 min, High severity<br><strong>Response:</strong> 15-30 minutes<br><strong>Actions:</strong> Coordinate resources, alternate vehicles</div></div><div class="escalation-card level-3"><div class="escalation-level">Level 3 - Critical</div><div class="escalation-person">Director / VP</div><div class="escalation-role">Senior management</div><div class="escalation-triggers"><strong>Triggers:</strong> Unresolved >60 min, Critical severity<br><strong>Response:</strong> Immediate<br><strong>Actions:</strong> Executive decision, insurance claims</div></div></div></div></div>';
+
+// ===== INIT =====
+async function init() {
+  STATE.token = getToken();
+  document.getElementById('tokenInput').value = STATE.token;
+
+  const ok = await validateToken();
+  if (ok) {
+    await loadIntanglesFleetSummary();
+    updateOpsWithLiveData();
+  } else {
+    ['intanglesFleetContent','intanglesVehicleContent','intanglesGeofenceContent','intanglesAlertContent','intanglesAccountContent'].forEach(function(id) {
+      document.getElementById(id).innerHTML = '<div class="i-info-msg">Login or enter a valid token to load data.</div>';
+    });
+  }
+  setupAutoRefresh();
+
+  // Animate vehicle markers
+  document.querySelectorAll('.vehicle-marker').forEach(function(marker) {
+    setInterval(function() {
+      var dot = marker.querySelector('.vehicle-dot');
+      if (dot.classList.contains('moving')) {
+        var jx = (Math.random() - 0.5) * 2;
+        var jy = (Math.random() - 0.5) * 2;
+        marker.style.transform = 'translate(' + jx + 'px, ' + jy + 'px)';
+      }
+    }, 2000);
+  });
+
+  // Animate charts on business view
+  var observer = new IntersectionObserver(function(entries) {
+    entries.forEach(function(entry) {
+      if (entry.isIntersecting) {
+        entry.target.querySelectorAll('.bar').forEach(function(bar) {
+          var h = bar.style.height; bar.style.height = '0';
+          setTimeout(function() { bar.style.height = h; }, 100);
+        });
+        entry.target.querySelectorAll('.kpi-bar-fill').forEach(function(fill) {
+          var w = fill.style.width; fill.style.width = '0';
+          setTimeout(function() { fill.style.width = w; }, 100);
+        });
+      }
+    });
+  }, { threshold: 0.1 });
+  observer.observe(document.getElementById('view-business'));
+}
+
+init();
+</script>
+</body>
+</html>

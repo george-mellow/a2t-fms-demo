@@ -1,0 +1,15 @@
+{
+  "name": "a2t-fms",
+  "version": "1.0.0",
+  "description": "A2T Fleet Management System - POC Dashboard",
+  "main": "proxy-server.js",
+  "scripts": {
+    "start": "node proxy-server.js"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
+}
