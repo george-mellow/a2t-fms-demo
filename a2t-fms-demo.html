@@ -1252,7 +1252,12 @@ async function intanglesApi(path, options = {}) {
     throw new Error('Token expired or invalid');
   }
   if (!resp.ok) throw new Error('API ' + resp.status + ': ' + resp.statusText);
-  return resp.json();
+  const data = await resp.json();
+  if (data && data.status && data.status.code === 12000) {
+    handleTokenExpired();
+    throw new Error(data.status.msg || 'Invalid token');
+  }
+  return data;
 }
 
 function resolvePath(template) {

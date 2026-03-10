@@ -30,6 +30,11 @@ const server = http.createServer((req, res) => {
     const headers = { ...req.headers, host: API_HOST };
     delete headers['origin'];
     delete headers['referer'];
+    delete headers['connection'];
+    delete headers['accept-encoding'];
+    delete headers['transfer-encoding'];
+    delete headers['content-length'];
+    if (req.method === 'GET') delete headers['content-type'];
 
     const proxyReq = https.request(
       { hostname: API_HOST, path: targetPath, method: req.method, headers },
