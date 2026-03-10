@@ -1347,9 +1347,14 @@ async function doLogin() {
       headers: { ...INTANGLES.HEADERS_STATIC, 'Content-Type': 'application/json' },
       body: JSON.stringify({ email, password })
     }).then(r => r.json());
-    const token = data.token || data.UserToken || data.access_token || (data.data && data.data.token);
+    if (data.status && (data.status.code === 12000 || data.status.code === '500')) {
+      document.getElementById('authMsg').innerHTML = '<div class="i-error-msg">Login failed: ' + (data.status.msg || data.status.ex || 'Unknown error') + '</div>';
+      return;
+    }
+    const token = data.UserToken || data.token || data.access_token || (data.data && (data.data.UserToken || data.data.token));
     if (!token) {
-      document.getElementById('authMsg').innerHTML = '<div class="i-error-msg">Login succeeded but no token found. Check API Explorer.</div>';
+      console.log('Login response:', JSON.stringify(data));
+      document.getElementById('authMsg').innerHTML = '<div class="i-error-msg">No token in response. Keys: ' + Object.keys(data).join(', ') + '</div>';
       return;
     }
     saveToken(token);
