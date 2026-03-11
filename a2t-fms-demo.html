@@ -1267,6 +1267,9 @@ function resolvePath(template) {
 // ===== AUTH =====
 function getToken() { return localStorage.getItem('IntanglesToken') || INTANGLES.DEFAULT_TOKEN; }
 function saveToken(token) { localStorage.setItem('IntanglesToken', token); STATE.token = token; }
+function saveCredentials(email, password) { sessionStorage.setItem('_iCred', btoa(JSON.stringify({ e: email, p: password }))); }
+function getSavedCredentials() { try { return JSON.parse(atob(sessionStorage.getItem('_iCred'))); } catch { return null; } }
+function clearCredentials() { sessionStorage.removeItem('_iCred'); }
 
 function updateConnectionUI(status) {
   const dot = document.getElementById('navConnDot');
@@ -1308,11 +1311,33 @@ async function validateToken() {
   }
 }
 
+let _autoReloginInProgress = false;
+
 function handleTokenExpired() {
   updateConnectionUI('disconnected');
   document.getElementById('intanglesAuthTitle').textContent = 'Authentication (Token expired - login required)';
   expandIntanglesSection('intanglesAuthBody');
-  document.getElementById('authMsg').innerHTML = '<div class="i-error-msg">Token expired. Please login or enter a new token.</div>';
+
+  // Try auto-re-login if we have saved credentials
+  const cred = getSavedCredentials();
+  if (cred && !_autoReloginInProgress) {
+    _autoReloginInProgress = true;
+    document.getElementById('authMsg').innerHTML = '<div class="i-info-msg">Token expired. Re-logging in automatically...</div>';
+    silentLogin(cred.e, cred.p).then(function(ok) {
+      _autoReloginInProgress = false;
+      if (ok) {
+        document.getElementById('authMsg').innerHTML = '<div class="i-info-msg">Auto re-login successful!</div>';
+        loadAllIntangles();
+        updateOpsWithLiveData();
+        updateExecWithLiveData();
+      } else {
+        clearCredentials();
+        document.getElementById('authMsg').innerHTML = '<div class="i-error-msg">Auto re-login failed. Please login manually.</div>';
+      }
+    });
+  } else if (!cred) {
+    document.getElementById('authMsg').innerHTML = '<div class="i-error-msg">Token expired. Please login or enter a new token.</div>';
+  }
 }
 
 async function useToken() {
@@ -1331,6 +1356,55 @@ async function useToken() {
   }
 }
 
+// Core login logic — used by both UI login and silent re-login
+async function _performLogin(email, password) {
+  // Step 1: Logout existing sessions first (session management)
+  try {
+    await fetch(INTANGLES.API_BASE + '/v2/user/logout_sessions_before_login', {
+      method: 'POST',
+      headers: { ...INTANGLES.HEADERS_STATIC, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username: email, email })
+    });
+  } catch (e) {
+    console.log('logout_sessions_before_login skipped:', e.message);
+  }
+
+  // Step 2: Login
+  const resp = await fetch(INTANGLES.API_BASE + '/v2/user/login', {
+    method: 'POST',
+    headers: { ...INTANGLES.HEADERS_STATIC, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ username: email, email, password })
+  });
+  const data = await resp.json();
+
+  if (data.status && (data.status.code === 12000 || data.status.code === '500' || data.status.code === 500)) {
+    throw new Error(data.status.msg || data.status.ex || 'Login failed');
+  }
+
+  const token = data.UserToken || data.token || data.access_token || (data.data && (data.data.UserToken || data.data.token));
+  if (!token) {
+    console.log('Login response:', JSON.stringify(data));
+    throw new Error('No token in response. Keys: ' + Object.keys(data).join(', '));
+  }
+
+  return token;
+}
+
+// Silent login for auto-re-login on token expiry
+async function silentLogin(email, password) {
+  try {
+    const token = await _performLogin(email, password);
+    saveToken(token);
+    document.getElementById('tokenInput').value = token;
+    await validateToken();
+    return true;
+  } catch (e) {
+    console.log('Silent login failed:', e.message);
+    return false;
+  }
+}
+
+// UI-driven login
 async function doLogin() {
   const email = document.getElementById('emailInput').value.trim();
   const password = document.getElementById('passwordInput').value;
@@ -1340,28 +1414,17 @@ async function doLogin() {
   }
   const btn = document.getElementById('loginBtn');
   btn.disabled = true; btn.textContent = 'Logging in...';
-  document.getElementById('authMsg').innerHTML = '<div class="i-info-msg">Logging in...</div>';
+  document.getElementById('authMsg').innerHTML = '<div class="i-info-msg">Logging in (clearing old sessions)...</div>';
   try {
-    const data = await fetch(INTANGLES.API_BASE + '/v2/user/login', {
-      method: 'POST',
-      headers: { ...INTANGLES.HEADERS_STATIC, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ username: email, email, password })
-    }).then(r => r.json());
-    if (data.status && (data.status.code === 12000 || data.status.code === '500')) {
-      document.getElementById('authMsg').innerHTML = '<div class="i-error-msg">Login failed: ' + (data.status.msg || data.status.ex || 'Unknown error') + '</div>';
-      return;
-    }
-    const token = data.UserToken || data.token || data.access_token || (data.data && (data.data.UserToken || data.data.token));
-    if (!token) {
-      console.log('Login response:', JSON.stringify(data));
-      document.getElementById('authMsg').innerHTML = '<div class="i-error-msg">No token in response. Keys: ' + Object.keys(data).join(', ') + '</div>';
-      return;
-    }
+    const token = await _performLogin(email, password);
     saveToken(token);
+    saveCredentials(email, password);
     document.getElementById('tokenInput').value = token;
-    document.getElementById('authMsg').innerHTML = '<div class="i-info-msg">Login successful!</div>';
+    document.getElementById('authMsg').innerHTML = '<div class="i-info-msg">Login successful! Session active.</div>';
     await validateToken();
     loadAllIntangles();
+    updateOpsWithLiveData();
+    updateExecWithLiveData();
   } catch (e) {
     document.getElementById('authMsg').innerHTML = '<div class="i-error-msg">Login failed: ' + e.message + '</div>';
   } finally {
@@ -1639,6 +1702,30 @@ function updateExecWithLiveData() {
   document.getElementById('execLiveIndicator').style.display = 'inline-flex';
 }
 
+// ===== TOKEN HEALTH CHECK =====
+// Periodically validate token; auto-re-login if expired and credentials are saved
+function startTokenHealthCheck() {
+  setInterval(async function() {
+    if (!STATE.connected) return; // already disconnected, no need to check
+    try {
+      const resp = await fetch(INTANGLES.API_BASE + '/v2/user/getbytoken/' + STATE.token + '?lang=en', {
+        headers: {
+          ...INTANGLES.HEADERS_STATIC,
+          'intangles-user-token': STATE.token || '',
+          'Accept': 'application/json',
+        }
+      });
+      const data = await resp.json();
+      if (data && data.status && data.status.code === 12000) {
+        console.log('Token health check: expired, triggering re-auth');
+        handleTokenExpired();
+      }
+    } catch (e) {
+      console.log('Token health check error:', e.message);
+    }
+  }, 5 * 60 * 1000); // check every 5 minutes
+}
+
 // ===== AUTO-REFRESH =====
 function setupAutoRefresh() {
   const cb = document.getElementById('autoRefresh');
@@ -1815,6 +1902,7 @@ async function init() {
     });
   }
   setupAutoRefresh();
+  startTokenHealthCheck();
 
   // Animate vehicle markers
   document.querySelectorAll('.vehicle-marker').forEach(function(marker) {
